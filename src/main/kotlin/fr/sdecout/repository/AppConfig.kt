@@ -1,10 +1,16 @@
 package fr.sdecout.repository
 
+import fr.sdecout.repository.domain.api.FindTournament
 import fr.sdecout.repository.domain.api.FindUser
+import fr.sdecout.repository.domain.api.UpsertTournament
 import fr.sdecout.repository.domain.api.UpsertUser
+import fr.sdecout.repository.domain.shell.TournamentAccessService
+import fr.sdecout.repository.domain.shell.TournamentUpdateService
 import fr.sdecout.repository.domain.shell.UserAccessService
 import fr.sdecout.repository.domain.shell.UserUpdateService
+import fr.sdecout.repository.domain.spi.Tournaments
 import fr.sdecout.repository.domain.spi.Users
+import fr.sdecout.repository.infra.driven.jdbc.DbTournaments
 import fr.sdecout.repository.infra.driven.jdbc.DbUsers
 import org.jooq.DSLContext
 import org.jooq.conf.RenderNameCase
@@ -29,13 +35,24 @@ class AppConfig {
     @Bean
     fun users(dsl: DSLContext): Users = DbUsers(dsl)
 
+    @Bean
+    fun tournaments(dsl: DSLContext): Tournaments = DbTournaments(dsl)
+
     /* Services */
 
     @Bean
-    fun userAccessService(users: Users) : UserAccessService = UserAccessService(users)
+    fun userAccessService(users: Users): UserAccessService = UserAccessService(users)
 
     @Bean
-    fun userUpdateService(users: Users) : UserUpdateService = UserUpdateService(users)
+    fun userUpdateService(users: Users): UserUpdateService = UserUpdateService(users)
+
+    @Bean
+    fun tournamentAccessService(tournaments: Tournaments): TournamentAccessService =
+        TournamentAccessService(tournaments)
+
+    @Bean
+    fun tournamentUpdateService(tournaments: Tournaments): TournamentUpdateService =
+        TournamentUpdateService(tournaments)
 
     /* Left adapters */
 
@@ -44,5 +61,11 @@ class AppConfig {
 
     @Bean
     fun upsertUser(users: Users): UpsertUser = userUpdateService(users)
+
+    @Bean
+    fun findTournament(tournaments: Tournaments): FindTournament = tournamentAccessService(tournaments)
+
+    @Bean
+    fun upsertTournament(tournaments: Tournaments): UpsertTournament = tournamentUpdateService(tournaments)
 
 }

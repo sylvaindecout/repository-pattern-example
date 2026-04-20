@@ -76,8 +76,80 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /tournaments/{tournamentId}:
+    get:
+      tags:
+        - tournament
+      summary: Find tournament
+      description: Find a tournament
+      operationId: findTournament
+      parameters:
+        - name: tournamentId
+          in: path
+          description: ID of tournament
+          required: true
+          schema:
+            $ref: '#/components/schemas/TournamentId'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tournament'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Tournament not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - tournament
+      summary: Upsert tournament
+      description: Create or update a tournament
+      operationId: upsertTournament
+      parameters:
+        - name: tournamentId
+          in: path
+          description: ID of tournament
+          required: true
+          schema:
+            $ref: '#/components/schemas/TournamentId'
+      requestBody:
+        $ref: '#/components/requestBodies/TournamentUpdateRequest'
+      responses:
+        '204':
+          description: Successful operation
+        '400':
+          description: Invalid ID supplied
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   schemas:
+    Tournament:
+      required:
+        - id
+        - name
+        - maxPlayerRosterSize
+      properties:
+        id:
+          $ref: '#/components/schemas/TournamentId'
+          readonly: true
+        name:
+          $ref: '#/components/schemas/TournamentName'
+        maxPlayerRosterSize:
+          $ref: '#/components/schemas/PlayerRosterSize'
+        minimumAge:
+          $ref: '#/components/schemas/Age'
     User:
       required:
         - id
@@ -97,6 +169,15 @@ components:
     UserId:
       type: string
       format: uuid
+    TournamentId:
+      type: string
+      format: uuid
+    TournamentName:
+      type: string
+      examples: [ 'Tournament #1' ]
+    PlayerRosterSize:
+      type: integer
+      examples: [ 50 ]
     Nickname:
       type: string
       pattern: '[A-Z]{1,50}'
@@ -104,6 +185,10 @@ components:
     LocalDate:
       type: string
       format: date
+    Age:
+      type: integer
+      minimum: 16
+      examples: [ 20, 35, 25, 21 ]
     City:
       type: string
       minLength: 2
@@ -119,6 +204,12 @@ components:
         - code
         - message
   requestBodies:
+    TournamentUpdateRequest:
+      description: Tournament that needs to be created or updated
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Tournament'
     UserUpdateRequest:
       description: User that needs to be created or updated
       content:

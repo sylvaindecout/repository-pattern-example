@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_3
 import org.jooq.meta.jaxb.ForcedType
 import org.jooq.meta.jaxb.Logging
+import org.jooq.meta.jaxb.Nullability.ALL
 import org.jooq.meta.jaxb.Nullability.NOT_NULL
 import org.jooq.meta.jaxb.Property
 
@@ -107,6 +108,26 @@ jooq {
             .withConverter("fr.sdecout.repository.infra.driven.jdbc.converters.CityConverter")
             .withIncludeExpression("PLAYER.CITY")
             .withNullability(NOT_NULL),
+          ForcedType()
+            .withUserType("fr.sdecout.repository.domain.core.tournament.TournamentId")
+            .withConverter("fr.sdecout.repository.infra.driven.jdbc.converters.TournamentIdConverter")
+            .withIncludeExpression("TOURNAMENT.ID")
+            .withNullability(NOT_NULL),
+          ForcedType()
+            .withUserType("fr.sdecout.repository.domain.core.tournament.TournamentName")
+            .withConverter("fr.sdecout.repository.infra.driven.jdbc.converters.TournamentNameConverter")
+            .withIncludeExpression("TOURNAMENT.NAME")
+            .withNullability(NOT_NULL),
+          ForcedType()
+            .withUserType("fr.sdecout.repository.domain.core.tournament.RosterSize")
+            .withConverter("fr.sdecout.repository.infra.driven.jdbc.converters.RosterSizeConverter")
+            .withIncludeExpression("TOURNAMENT.MAX_PLAYER_ROSTER_SIZE")
+            .withNullability(NOT_NULL),
+          ForcedType()
+            .withUserType("fr.sdecout.repository.domain.core.user.Age")
+            .withConverter("fr.sdecout.repository.infra.driven.jdbc.converters.AgeConverter")
+            .withIncludeExpression("TOURNAMENT.MIN_AGE")
+            .withNullability(ALL),
         )
       }
       generate {
@@ -124,4 +145,3 @@ jooq {
 tasks.named("compileKotlin") {
   dependsOn(tasks.named("jooqCodegen"))
 }
-
