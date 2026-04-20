@@ -8,14 +8,17 @@ import fr.sdecout.repository.domain.TestData.Users.jolyne
 import fr.sdecout.repository.domain.TestData.Users.joseph
 import fr.sdecout.repository.domain.TestData.today
 import fr.sdecout.repository.domain.core.roster.Player
-import fr.sdecout.repository.domain.core.roster.PlayerRosterEntry
+import fr.sdecout.repository.domain.core.roster.PlayerRoster
+import fr.sdecout.repository.domain.core.roster.PlayerRoster.Companion.toPlayerRoster
 import fr.sdecout.repository.domain.core.tournament.RosterSize.Companion.players
 import fr.sdecout.repository.domain.core.tournament.TournamentId
 import fr.sdecout.repository.domain.core.user.UserId
-import fr.sdecout.repository.domain.spi.InMemoryPlayerRosterEntries
+import fr.sdecout.repository.domain.spi.InMemoryPlayerRosters
 import fr.sdecout.repository.domain.spi.InMemoryTournaments
 import fr.sdecout.repository.domain.spi.InMemoryUsers
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -23,26 +26,24 @@ import org.junit.jupiter.api.Test
 class PlayerUpdateServiceTest {
     val users = InMemoryUsers()
     val tournaments = InMemoryTournaments()
-    val playerRosterEntries = InMemoryPlayerRosterEntries()
+    val playerRosters = InMemoryPlayerRosters()
 
-    val service = PlayerUpdateService(users, tournaments, playerRosterEntries)
+    val service = PlayerUpdateService(users, tournaments, playerRosters)
 
     @AfterEach
     fun afterEach() {
         users.clear()
         tournaments.clear()
-        playerRosterEntries.clear()
+        playerRosters.clear()
     }
 
     @Test
     fun `should reset player roster`() {
-        playerRosterEntries.save(PlayerRosterEntry.from(tournament1.id, Players.jolyne.userId, Players.jolyne.nickname))
-        playerRosterEntries.save(PlayerRosterEntry.from(tournament1.id,  Players.giorno.userId, Players.giorno.nickname))
-        playerRosterEntries.save(PlayerRosterEntry.from(tournament1.id,  Players.joseph.userId, Players.joseph.nickname))
+        playerRosters.save(tournament1.toPlayerRoster(Players.jolyne, Players.giorno, Players.joseph))
 
         service.resetPlayerRoster(tournament1.id)
 
-        playerRosterEntries.findAll(tournament1.id) shouldBe emptyList()
+        playerRosters.find(tournament1.id) shouldBe null
     }
 
     @Test
@@ -69,7 +70,7 @@ class PlayerUpdateServiceTest {
         users.save(giorno)
         val tournament = tournament1.copy(maxPlayerRosterSize = 1.players)
         tournaments.save(tournament)
-        playerRosterEntries.save(PlayerRosterEntry.from(tournament.id,  Players.jolyne.userId, Players.jolyne.nickname))
+        playerRosters.save(tournament.toPlayerRoster(Players.jolyne))
 
         shouldThrow<DomainExceptions.FullPlayerRoster> {
             service.addPlayer(tournament.id, giorno.id, addedOn = { today })
@@ -80,8 +81,7 @@ class PlayerUpdateServiceTest {
     fun `should fail to add player that is already in roster`() {
         users.save(joseph)
         tournaments.save(tournament1)
-        playerRosterEntries.save(PlayerRosterEntry.from(tournament1.id,  Players.jolyne.userId, Players.jolyne.nickname))
-        playerRosterEntries.save(PlayerRosterEntry.from(tournament1.id,  Players.joseph.userId, Players.joseph.nickname))
+        playerRosters.save(tournament1.toPlayerRoster(Players.jolyne, Players.joseph))
 
         shouldThrow<DomainExceptions.DuplicatePlayer> {
             service.addPlayer(tournament1.id, joseph.id, addedOn = { today })
@@ -95,23 +95,18 @@ class PlayerUpdateServiceTest {
 
         service.addPlayer(tournament2.id, giorno.id, addedOn = { today })
 
-        playerRosterEntries.findAll(tournament2.id) shouldBe listOf(
-            PlayerRosterEntry.from(tournament2.id,  Players.giorno.userId, Players.giorno.nickname),
-        )
+        playerRosters.find(tournament2.id) shouldBeIgnoringPendingPlayers tournament2.toPlayerRoster(Players.giorno)
     }
 
     @Test
     fun `should add player to existing roster`() {
         users.save(giorno)
         tournaments.save(tournament2)
-        playerRosterEntries.save(PlayerRosterEntry.from(tournament2.id,  Players.jolyne.userId, Players.jolyne.nickname))
+        playerRosters.save(tournament2.toPlayerRoster(Players.jolyne))
 
         service.addPlayer(tournament2.id, giorno.id, addedOn = { today })
 
-        playerRosterEntries.findAll(tournament2.id) shouldBe listOf(
-            PlayerRosterEntry.from(tournament2.id,  Players.jolyne.userId, Players.jolyne.nickname),
-            PlayerRosterEntry.from(tournament2.id,  Players.giorno.userId, Players.giorno.nickname),
-        )
+        playerRosters.find(tournament2.id) shouldBeIgnoringPendingPlayers tournament2.toPlayerRoster(Players.jolyne, Players.giorno)
     }
 
     @Test
@@ -120,29 +115,25 @@ class PlayerUpdateServiceTest {
         users.save(joseph)
         tournaments.save(tournament1)
         val anotherJoseph = Player(jolyne.id, Players.joseph.nickname)
-        playerRosterEntries.save(PlayerRosterEntry.from(tournament1.id,  anotherJoseph.userId, anotherJoseph.nickname))
+        playerRosters.save(tournament1.toPlayerRoster(anotherJoseph))
         val joseph2 = Player(joseph.id, Players.joseph.nickname + "-1")
 
         service.addPlayer(tournament1.id, joseph.id, addedOn = { today })
 
-        playerRosterEntries.findAll(tournament1.id) shouldBe listOf(
-            PlayerRosterEntry.from(tournament1.id,  anotherJoseph.userId, anotherJoseph.nickname),
-            PlayerRosterEntry.from(tournament1.id,  joseph2.userId, joseph2.nickname),
-        )
+        playerRosters.find(tournament1.id) shouldBeIgnoringPendingPlayers tournament1.toPlayerRoster(anotherJoseph, joseph2)
     }
 
     @Test
     fun `should add player that is already in scoreboard`() {
         users.save(giorno)
         tournaments.save(tournament2)
-        playerRosterEntries.save(PlayerRosterEntry.from(tournament2.id,  Players.jolyne.userId, Players.jolyne.nickname))
+        playerRosters.save(tournament2.toPlayerRoster(Players.jolyne))
 
         service.addPlayer(tournament2.id, giorno.id, addedOn = { today })
 
-        playerRosterEntries.findAll(tournament2.id) shouldBe listOf(
-            PlayerRosterEntry.from(tournament2.id,  Players.jolyne.userId, Players.jolyne.nickname),
-            PlayerRosterEntry.from(tournament2.id,  Players.giorno.userId, Players.giorno.nickname),
-        )
+        playerRosters.find(tournament2.id) shouldBeIgnoringPendingPlayers tournament2.toPlayerRoster(Players.jolyne, Players.giorno)
     }
 
+    private infix fun PlayerRoster?.shouldBeIgnoringPendingPlayers(expected: PlayerRoster) = shouldNotBeNull()
+        .shouldBeEqualToIgnoringFields(expected, PlayerRoster::pendingPlayers)
 }

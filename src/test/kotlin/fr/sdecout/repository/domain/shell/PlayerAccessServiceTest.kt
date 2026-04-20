@@ -3,9 +3,9 @@ package fr.sdecout.repository.domain.shell
 import fr.sdecout.repository.domain.TestData.Players
 import fr.sdecout.repository.domain.TestData.Tournaments.tournament1
 import fr.sdecout.repository.domain.TestData.today
-import fr.sdecout.repository.domain.core.roster.PlayerRosterEntry
+import fr.sdecout.repository.domain.core.roster.PlayerRoster.Companion.toPlayerRoster
 import fr.sdecout.repository.domain.core.tournament.TournamentId
-import fr.sdecout.repository.domain.spi.InMemoryPlayerRosterEntries
+import fr.sdecout.repository.domain.spi.InMemoryPlayerRosters
 import fr.sdecout.repository.domain.spi.InMemoryTournaments
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -15,14 +15,14 @@ import org.junit.jupiter.api.Test
 
 class PlayerAccessServiceTest {
     val tournaments = InMemoryTournaments()
-    val playerRosterEntries = InMemoryPlayerRosterEntries()
+    val playerRosters = InMemoryPlayerRosters()
 
-    val service = PlayerAccessService(tournaments, playerRosterEntries)
+    val service = PlayerAccessService(tournaments, playerRosters)
 
     @AfterEach
     fun afterEach() {
         tournaments.clear()
-        playerRosterEntries.clear()
+        playerRosters.clear()
     }
 
     @BeforeEach
@@ -40,9 +40,7 @@ class PlayerAccessServiceTest {
 
     @Test
     fun `should list players`() {
-        playerRosterEntries.save(PlayerRosterEntry.from(tournament1.id, Players.jolyne.userId, Players.jolyne.nickname))
-        playerRosterEntries.save(PlayerRosterEntry.from(tournament1.id, Players.giorno.userId, Players.giorno.nickname))
-        playerRosterEntries.save(PlayerRosterEntry.from(tournament1.id, Players.joseph.userId, Players.joseph.nickname))
+        playerRosters.save(tournament1.toPlayerRoster(Players.jolyne, Players.giorno, Players.joseph))
 
         val result = service.listPlayers(tournament1.id, requestedOn = { today })
 

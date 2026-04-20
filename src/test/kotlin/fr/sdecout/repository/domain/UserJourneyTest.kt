@@ -6,7 +6,7 @@ import fr.sdecout.repository.domain.TestData.Users.jotaro
 import fr.sdecout.repository.domain.TestData.today
 import fr.sdecout.repository.domain.api.*
 import fr.sdecout.repository.domain.shell.*
-import fr.sdecout.repository.domain.spi.InMemoryPlayerRosterEntries
+import fr.sdecout.repository.domain.spi.InMemoryPlayerRosters
 import fr.sdecout.repository.domain.spi.InMemoryTournaments
 import fr.sdecout.repository.domain.spi.InMemoryUsers
 import io.kotest.matchers.shouldBe
@@ -18,16 +18,16 @@ class UserJourneyTest {
     // driven ports
     val users = InMemoryUsers()
     val tournaments = InMemoryTournaments()
-    val playerRosterEntries = InMemoryPlayerRosterEntries()
+    val playerRosters = InMemoryPlayerRosters()
 
     // driving ports
     val upsertUser: UpsertUser = UserUpdateService(users)
     val findUser: FindUser = UserAccessService(users)
     val upsertTournament: UpsertTournament = TournamentUpdateService(tournaments)
     val findTournament: FindTournament = TournamentAccessService(tournaments)
-    val addPlayer: AddPlayer = PlayerUpdateService(users, tournaments, playerRosterEntries)
-    val listPlayers: ListPlayers = PlayerAccessService(tournaments, playerRosterEntries)
-    val resetPlayerRoster: ResetPlayerRoster = PlayerUpdateService(users, tournaments, playerRosterEntries)
+    val addPlayer: AddPlayer = PlayerUpdateService(users, tournaments, playerRosters)
+    val listPlayers: ListPlayers = PlayerAccessService(tournaments, playerRosters)
+    val resetPlayerRoster: ResetPlayerRoster = PlayerUpdateService(users, tournaments, playerRosters)
 
     @Test
     fun `should support user journey`() {
