@@ -8,7 +8,6 @@ import fr.sdecout.repository.domain.TestData.Users.jolyne
 import fr.sdecout.repository.domain.TestData.Users.joseph
 import fr.sdecout.repository.domain.TestData.today
 import fr.sdecout.repository.domain.core.roster.Player
-import fr.sdecout.repository.domain.core.roster.PlayerRoster
 import fr.sdecout.repository.domain.core.roster.PlayerRoster.Companion.toPlayerRoster
 import fr.sdecout.repository.domain.core.tournament.RosterSize.Companion.players
 import fr.sdecout.repository.domain.core.tournament.TournamentId
@@ -17,8 +16,6 @@ import fr.sdecout.repository.domain.spi.InMemoryPlayerRosters
 import fr.sdecout.repository.domain.spi.InMemoryTournaments
 import fr.sdecout.repository.domain.spi.InMemoryUsers
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -95,7 +92,7 @@ class PlayerUpdateServiceTest {
 
         service.addPlayer(tournament2.id, giorno.id, addedOn = { today })
 
-        playerRosters.find(tournament2.id) shouldBeIgnoringPendingPlayers tournament2.toPlayerRoster(Players.giorno)
+        playerRosters.find(tournament2.id) shouldBe tournament2.toPlayerRoster(Players.giorno)
     }
 
     @Test
@@ -106,7 +103,7 @@ class PlayerUpdateServiceTest {
 
         service.addPlayer(tournament2.id, giorno.id, addedOn = { today })
 
-        playerRosters.find(tournament2.id) shouldBeIgnoringPendingPlayers tournament2.toPlayerRoster(Players.jolyne, Players.giorno)
+        playerRosters.find(tournament2.id) shouldBe tournament2.toPlayerRoster(Players.jolyne, Players.giorno)
     }
 
     @Test
@@ -120,7 +117,7 @@ class PlayerUpdateServiceTest {
 
         service.addPlayer(tournament1.id, joseph.id, addedOn = { today })
 
-        playerRosters.find(tournament1.id) shouldBeIgnoringPendingPlayers tournament1.toPlayerRoster(anotherJoseph, joseph2)
+        playerRosters.find(tournament1.id) shouldBe tournament1.toPlayerRoster(anotherJoseph, joseph2)
     }
 
     @Test
@@ -131,9 +128,7 @@ class PlayerUpdateServiceTest {
 
         service.addPlayer(tournament2.id, giorno.id, addedOn = { today })
 
-        playerRosters.find(tournament2.id) shouldBeIgnoringPendingPlayers tournament2.toPlayerRoster(Players.jolyne, Players.giorno)
+        playerRosters.find(tournament2.id) shouldBe tournament2.toPlayerRoster(Players.jolyne, Players.giorno)
     }
 
-    private infix fun PlayerRoster?.shouldBeIgnoringPendingPlayers(expected: PlayerRoster) = shouldNotBeNull()
-        .shouldBeEqualToIgnoringFields(expected, PlayerRoster::pendingPlayers)
 }

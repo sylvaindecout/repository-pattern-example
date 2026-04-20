@@ -13,7 +13,6 @@ class PlayerRoster private constructor(
     val maxPlayerRosterSize: RosterSize,
     val minimumAge: Age?,
     private val playersById: Map<UserId, Player> = emptyMap(),
-    val pendingPlayers: Set<Player> = emptySet(),
 ) {
     val size: RosterSize = playersById.size.players
 
@@ -65,7 +64,6 @@ class PlayerRoster private constructor(
             maxPlayerRosterSize = maxPlayerRosterSize,
             minimumAge = minimumAge,
             playersById = playersById + (it.userId to it),
-            pendingPlayers = pendingPlayers + it,
         )
     }
 
@@ -79,13 +77,12 @@ class PlayerRoster private constructor(
         if (maxPlayerRosterSize != other.maxPlayerRosterSize) return false
         if (minimumAge != other.minimumAge) return false
         if (playersById != other.playersById) return false
-        if (pendingPlayers != other.pendingPlayers) return false
 
         return true
     }
 
-    override fun hashCode(): Int = hash(tournamentId, maxPlayerRosterSize, minimumAge, playersById, pendingPlayers)
+    override fun hashCode(): Int = hash(tournamentId, maxPlayerRosterSize, minimumAge, playersById)
 
     override fun toString(): String =
-        "PlayerRoster(tournamentId=$tournamentId, maxPlayerRosterSize=$maxPlayerRosterSize, minimumAge=$minimumAge, players=$players, pendingPlayers=$pendingPlayers)"
+        "PlayerRoster(tournamentId=$tournamentId, maxPlayerRosterSize=$maxPlayerRosterSize, minimumAge=$minimumAge, players=$players)"
 }

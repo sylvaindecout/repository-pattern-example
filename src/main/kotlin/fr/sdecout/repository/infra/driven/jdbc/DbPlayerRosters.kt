@@ -34,8 +34,11 @@ class DbPlayerRosters(private val dsl: DSLContext) : PlayerRosters {
         .where(TOURNAMENT.ID.eq(id))
         .fetchOne { it.toDomain() }
 
+    /**
+     * Issue: all player rows are updated, even if most of them have not been touched.
+     */
     override fun save(playerRoster: PlayerRoster) {
-        val commands = playerRoster.pendingPlayers
+        val commands = playerRoster.players
             .map { player -> prepareUpsert(player, playerRoster.tournamentId) }
         dsl.batch(commands).execute()
     }
