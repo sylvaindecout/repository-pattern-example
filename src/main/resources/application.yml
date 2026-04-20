@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: repository-pattern-example
+  datasource:
+    url: jdbc:postgresql://localhost:5432/example?schema=example
+    username: user
+    password: user123
+logging:
+  level:
+    root: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
