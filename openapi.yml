@@ -18,3 +18,110 @@ tags:
     description: Operations about managing player rosters
   - name: player
     description: Operations about a specific player
+paths:
+  /users/{userId}:
+    get:
+      tags:
+        - users
+      summary: Find user
+      description: Find a user
+      operationId: findUser
+      parameters:
+        - name: userId
+          in: path
+          description: ID of user
+          required: true
+          schema:
+            $ref: '#/components/schemas/UserId'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid parameters supplied
+        '404':
+          description: User not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - users
+      summary: Upsert user
+      description: Create or update a user
+      operationId: upsertUser
+      parameters:
+        - name: userId
+          in: path
+          description: ID of the user
+          required: true
+          schema:
+            $ref: '#/components/schemas/UserId'
+      requestBody:
+        $ref: '#/components/requestBodies/UserUpdateRequest'
+      responses:
+        '204':
+          description: Successful operation
+        '400':
+          description: Invalid parameters supplied
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    User:
+      required:
+        - id
+        - preferredNickname
+        - dateOfBirth
+        - city
+      properties:
+        id:
+          $ref: '#/components/schemas/UserId'
+          readonly: true
+        preferredNickname:
+          $ref: '#/components/schemas/Nickname'
+        dateOfBirth:
+          $ref: '#/components/schemas/LocalDate'
+        city:
+          $ref: '#/components/schemas/City'
+    UserId:
+      type: string
+      format: uuid
+    Nickname:
+      type: string
+      pattern: '[A-Z]{1,50}'
+      examples: [ 'giorno', 'jotaro', 'jolyne', 'joseph' ]
+    LocalDate:
+      type: string
+      format: date
+    City:
+      type: string
+      minLength: 2
+      examples: [ 'naples', 'tokyo', 'orlando', 'new york city' ]
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required:
+        - code
+        - message
+  requestBodies:
+    UserUpdateRequest:
+      description: User that needs to be created or updated
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
