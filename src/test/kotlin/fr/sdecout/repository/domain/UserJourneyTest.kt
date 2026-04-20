@@ -1,15 +1,12 @@
 package fr.sdecout.repository.domain
 
+import fr.sdecout.repository.domain.TestData.Players
 import fr.sdecout.repository.domain.TestData.Tournaments.tournament1
 import fr.sdecout.repository.domain.TestData.Users.jotaro
-import fr.sdecout.repository.domain.api.FindTournament
-import fr.sdecout.repository.domain.api.FindUser
-import fr.sdecout.repository.domain.api.UpsertTournament
-import fr.sdecout.repository.domain.api.UpsertUser
-import fr.sdecout.repository.domain.shell.TournamentAccessService
-import fr.sdecout.repository.domain.shell.TournamentUpdateService
-import fr.sdecout.repository.domain.shell.UserAccessService
-import fr.sdecout.repository.domain.shell.UserUpdateService
+import fr.sdecout.repository.domain.TestData.today
+import fr.sdecout.repository.domain.api.*
+import fr.sdecout.repository.domain.shell.*
+import fr.sdecout.repository.domain.spi.InMemoryPlayerRosters
 import fr.sdecout.repository.domain.spi.InMemoryTournaments
 import fr.sdecout.repository.domain.spi.InMemoryUsers
 import io.kotest.matchers.shouldBe
@@ -21,12 +18,16 @@ class UserJourneyTest {
     // driven ports
     val users = InMemoryUsers()
     val tournaments = InMemoryTournaments()
+    val playerRosters = InMemoryPlayerRosters()
 
     // driving ports
     val upsertUser: UpsertUser = UserUpdateService(users)
     val findUser: FindUser = UserAccessService(users)
     val upsertTournament: UpsertTournament = TournamentUpdateService(tournaments)
     val findTournament: FindTournament = TournamentAccessService(tournaments)
+    val addPlayer: AddPlayer = PlayerUpdateService(users, tournaments, playerRosters)
+    val listPlayers: ListPlayers = PlayerAccessService(tournaments, playerRosters)
+    val resetPlayerRoster: ResetPlayerRoster = PlayerUpdateService(users, tournaments, playerRosters)
 
     @Test
     fun `should support user journey`() {
@@ -37,5 +38,19 @@ class UserJourneyTest {
         // back office - configure tournament
         upsertTournament(tournament1)
         findTournament(tournament1.id) shouldBe tournament1
+
+        // configure player info
+        val player = Players.jotaro
+
+        // select a tournament
+        val selectedTournamentId = tournament1.id
+
+        // complete 1st challenge
+        addPlayer(selectedTournamentId, jotaro.id, addedOn = { today })
+
+        // complete session
+        listPlayers(selectedTournamentId, requestedOn = { today }) shouldBe listOf(player)
+        resetPlayerRoster(selectedTournamentId)
+        listPlayers(selectedTournamentId, requestedOn = { today }) shouldBe emptyList()
     }
 }
