@@ -1,0 +1,20 @@
+openapi: 3.1.0
+info:
+  title: Tournament
+  description: |-
+    This API is used as a sandbox to discuss the repository pattern.
+  version: 0.0.1
+externalDocs:
+  description: Source code
+  url: https://github.com/sylvaindecout/repository-pattern-example
+tags:
+  - name: tournament
+    description: Back-office operations about tournaments
+  - name: users
+    description: Back-office operations about users
+  - name: selection
+    description: Operations related to tournament selection
+  - name: roster
+    description: Operations about managing player rosters
+  - name: player
+    description: Operations about a specific player
