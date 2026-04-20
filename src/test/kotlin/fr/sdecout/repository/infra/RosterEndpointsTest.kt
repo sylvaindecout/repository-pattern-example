@@ -79,26 +79,6 @@ class RosterEndpointsTest {
     }
 
     @Test
-    fun `should fail to add a player to an already-full tournament`(@Autowired mockMvc: MockMvc) {
-        val tournamentId = tournament2.id.value
-        mockMvc.perform(
-            post("/tournaments/{tournamentId}/players", tournamentId)
-                .contentType(APPLICATION_JSON)
-                .content("""{ "userId": "${giorno.id.value}" }""")
-        ).andExpect(status().isCreated())
-        mockMvc.perform(
-            post("/tournaments/{tournamentId}/players", tournamentId)
-                .contentType(APPLICATION_JSON)
-                .content("""{ "userId": "${jolyne.id.value}" }""")
-        ).andExpect(status().isCreated())
-        mockMvc.perform(
-            post("/tournaments/{tournamentId}/players", tournamentId)
-                .contentType(APPLICATION_JSON)
-                .content("""{ "userId": "${jotaro.id.value}" }""")
-        ).andExpect(status().isConflict())
-    }
-
-    @Test
     fun `should add a player to an existing tournament`(@Autowired mockMvc: MockMvc) {
         val userId = joseph.id.value
         val tournamentId = tournament1.id.value

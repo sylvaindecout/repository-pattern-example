@@ -18,11 +18,14 @@ class PlayerAccessService(
             .players
             .sortedBy { it.nickname.value }
 
-    private fun PlayerRosterEntries.get(tournamentId: TournamentId) = findAll(tournamentId)
-        .also {
-            if (it.isEmpty() && tournaments.find(tournamentId) == null)
-                throw DomainExceptions.TournamentNotFound(tournamentId)
-        }
+    private fun PlayerRosterEntries.get(tournamentId: TournamentId) = findAll(tournamentId).also {
+        if (it.isEmpty()) failOnUnknownTournament(tournamentId)
+    }
+
+    private fun failOnUnknownTournament(tournamentId: TournamentId) {
+        if (tournaments.find(tournamentId) == null)
+            throw DomainExceptions.TournamentNotFound(tournamentId)
+    }
 
     private val List<PlayerRosterEntry>.players get() = map { Player(it.userId, it.nickname) }
 }

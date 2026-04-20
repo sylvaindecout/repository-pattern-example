@@ -4,12 +4,9 @@ import fr.sdecout.repository.domain.TestData.Players
 import fr.sdecout.repository.domain.TestData.Tournaments.tournament1
 import fr.sdecout.repository.domain.TestData.Tournaments.tournament2
 import fr.sdecout.repository.domain.TestData.Users.giorno
-import fr.sdecout.repository.domain.TestData.Users.jolyne
 import fr.sdecout.repository.domain.TestData.Users.joseph
 import fr.sdecout.repository.domain.TestData.today
-import fr.sdecout.repository.domain.core.roster.Player
 import fr.sdecout.repository.domain.core.roster.PlayerRosterEntry
-import fr.sdecout.repository.domain.core.tournament.RosterSize.Companion.players
 import fr.sdecout.repository.domain.core.tournament.TournamentId
 import fr.sdecout.repository.domain.core.user.UserId
 import fr.sdecout.repository.domain.spi.InMemoryPlayerRosterEntries
@@ -65,18 +62,6 @@ class PlayerUpdateServiceTest {
     }
 
     @Test
-    fun `should fail to add player if roster is already full`() {
-        users.save(giorno)
-        val tournament = tournament1.copy(maxPlayerRosterSize = 1.players)
-        tournaments.save(tournament)
-        playerRosterEntries.save(PlayerRosterEntry.from(tournament.id,  Players.jolyne.userId, Players.jolyne.nickname))
-
-        shouldThrow<DomainExceptions.FullPlayerRoster> {
-            service.addPlayer(tournament.id, giorno.id, addedOn = { today })
-        }.message shouldBe "Player roster is full for tournament with id ${tournament.id}"
-    }
-
-    @Test
     fun `should fail to add player that is already in roster`() {
         users.save(joseph)
         tournaments.save(tournament1)
@@ -111,23 +96,6 @@ class PlayerUpdateServiceTest {
         playerRosterEntries.findAll(tournament2.id) shouldBe listOf(
             PlayerRosterEntry.from(tournament2.id,  Players.jolyne.userId, Players.jolyne.nickname),
             PlayerRosterEntry.from(tournament2.id,  Players.giorno.userId, Players.giorno.nickname),
-        )
-    }
-
-    @Test
-    fun `should add player that is already in roster with generated nickname`() {
-        users.save(jolyne)
-        users.save(joseph)
-        tournaments.save(tournament1)
-        val anotherJoseph = Player(jolyne.id, Players.joseph.nickname)
-        playerRosterEntries.save(PlayerRosterEntry.from(tournament1.id,  anotherJoseph.userId, anotherJoseph.nickname))
-        val joseph2 = Player(joseph.id, Players.joseph.nickname + "-1")
-
-        service.addPlayer(tournament1.id, joseph.id, addedOn = { today })
-
-        playerRosterEntries.findAll(tournament1.id) shouldBe listOf(
-            PlayerRosterEntry.from(tournament1.id,  anotherJoseph.userId, anotherJoseph.nickname),
-            PlayerRosterEntry.from(tournament1.id,  joseph2.userId, joseph2.nickname),
         )
     }
 
