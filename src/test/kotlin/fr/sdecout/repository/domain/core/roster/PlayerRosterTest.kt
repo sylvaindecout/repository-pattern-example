@@ -8,6 +8,8 @@ import fr.sdecout.repository.domain.TestData.Tournaments.tournament1
 import fr.sdecout.repository.domain.core.roster.PlayerRoster.Companion.toPlayerRoster
 import fr.sdecout.repository.domain.core.tournament.RosterSize.Companion.players
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -64,7 +66,7 @@ class PlayerRosterTest {
     @Test
     fun `should add new player from their ID`() {
         val roster = tournament1.toPlayerRoster(giorno, jotaro)
-        roster.add(joseph) shouldBe tournament1.toPlayerRoster(giorno, jotaro, joseph)
+        roster.add(joseph) shouldBeIgnoringPendingPlayers tournament1.toPlayerRoster(giorno, jotaro, joseph)
     }
 
     @Test
@@ -74,4 +76,6 @@ class PlayerRosterTest {
             .message shouldBe "Player roster must not include duplicate users"
     }
 
+    private infix fun PlayerRoster?.shouldBeIgnoringPendingPlayers(expected: PlayerRoster) = shouldNotBeNull()
+        .shouldBeEqualToIgnoringFields(expected, PlayerRoster::pendingPlayers)
 }
