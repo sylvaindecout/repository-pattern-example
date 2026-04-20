@@ -12,6 +12,8 @@ import fr.sdecout.repository.domain.spi.Tournaments
 import fr.sdecout.repository.domain.spi.Users
 import fr.sdecout.repository.infra.driven.jdbc.DbTournaments
 import fr.sdecout.repository.infra.driven.jdbc.DbUsers
+import fr.sdecout.repository.infra.driven.jdbc.TournamentRepository
+import fr.sdecout.repository.infra.driven.jdbc.TournamentRepositoryImpl
 import org.jooq.DSLContext
 import org.jooq.conf.RenderNameCase
 import org.springframework.boot.autoconfigure.jooq.DefaultConfigurationCustomizer
@@ -36,7 +38,10 @@ class AppConfig {
     fun users(dsl: DSLContext): Users = DbUsers(dsl)
 
     @Bean
-    fun tournaments(dsl: DSLContext): Tournaments = DbTournaments(dsl)
+    fun tournaments(tournamentRepository: TournamentRepository): Tournaments = DbTournaments(tournamentRepository)
+
+    @Bean
+    fun tournamentRepository(dsl: DSLContext): TournamentRepository = TournamentRepositoryImpl(dsl)
 
     /* Services */
 
