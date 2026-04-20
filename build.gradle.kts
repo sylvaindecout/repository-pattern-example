@@ -1,6 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_3
 
+val archunitVersion = "1.4.1"
 val kotestVersion = "6.1.11"
 val mockkVersion = "1.14.9"
 
@@ -18,6 +19,8 @@ dependencies {
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
   testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
   testImplementation("io.mockk:mockk:$mockkVersion")
+  testImplementation("com.tngtech.archunit:archunit:$archunitVersion")
+  testImplementation("com.tngtech.archunit:archunit-junit5:$archunitVersion")
 }
 
 kotlin {
