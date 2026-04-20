@@ -1,6 +1,8 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_3
+import org.jooq.meta.jaxb.ForcedType
 import org.jooq.meta.jaxb.Logging
+import org.jooq.meta.jaxb.Nullability.NOT_NULL
 import org.jooq.meta.jaxb.Property
 
 val archunitVersion = "1.4.1"
@@ -89,6 +91,23 @@ jooq {
           Property().withKey("scripts").withValue("/db/changelog/db.changelog-master.yaml"),
           Property().withKey("includeLiquibaseTables").withValue("false")
         )
+        withForcedTypes(
+          ForcedType()
+            .withUserType("fr.sdecout.repository.domain.core.user.UserId")
+            .withConverter("fr.sdecout.repository.infra.driven.jdbc.converters.UserIdConverter")
+            .withIncludeExpression("PLAYER.ID")
+            .withNullability(NOT_NULL),
+          ForcedType()
+            .withUserType("fr.sdecout.repository.domain.core.user.Nickname")
+            .withConverter("fr.sdecout.repository.infra.driven.jdbc.converters.NicknameConverter")
+            .withIncludeExpression("PLAYER.PREFERRED_NICKNAME")
+            .withNullability(NOT_NULL),
+          ForcedType()
+            .withUserType("fr.sdecout.repository.domain.core.user.City")
+            .withConverter("fr.sdecout.repository.infra.driven.jdbc.converters.CityConverter")
+            .withIncludeExpression("PLAYER.CITY")
+            .withNullability(NOT_NULL),
+        )
       }
       generate {
         isKotlinNotNullPojoAttributes = true
@@ -105,3 +124,4 @@ jooq {
 tasks.named("compileKotlin") {
   dependsOn(tasks.named("jooqCodegen"))
 }
+
