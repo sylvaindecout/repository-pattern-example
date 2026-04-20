@@ -133,8 +133,122 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /tournaments/{tournamentId}/players:
+    get:
+      tags:
+        - roster
+      summary: List players
+      description: List players of a tournament
+      operationId: listPlayers
+      parameters:
+        - name: tournamentId
+          in: path
+          description: ID of tournament
+          required: true
+          schema:
+            $ref: '#/components/schemas/TournamentId'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Player'
+                uniqueItems: true
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Tournament not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - roster
+      summary: Add a player
+      description: Add a player to the tournament
+      operationId: addPlayer
+      parameters:
+        - name: tournamentId
+          in: path
+          description: ID of tournament
+          required: true
+          schema:
+            $ref: '#/components/schemas/TournamentId'
+      requestBody:
+        $ref: '#/components/requestBodies/PlayerCreationRequest'
+      responses:
+        '201':
+          description: Successful operation
+          headers:
+            Location:
+              description: Location of created resource
+              schema:
+                type: string
+                format: uri
+                examples: [ 'https://example.com/tournaments/019ca99d-6d8f-7a0d-bbf2-4dbace954c07/players/giorno' ]
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Tournament not found
+        '409':
+          description: Conflict
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - roster
+      summary: Clear players
+      description: Clear players of the tournament
+      operationId: clearPlayers
+      parameters:
+        - name: tournamentId
+          in: path
+          description: ID of tournament
+          required: true
+          schema:
+            $ref: '#/components/schemas/TournamentId'
+      responses:
+        '204':
+          description: Successful operation
+        '400':
+          description: Invalid ID supplied
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   schemas:
+    TournamentSearchResult:
+      required:
+        - id
+        - name
+        - maxPlayerRosterSize
+        - playerRosterSize
+      properties:
+        id:
+          $ref: '#/components/schemas/TournamentId'
+        name:
+          $ref: '#/components/schemas/TournamentName'
+        maxPlayerRosterSize:
+          $ref: '#/components/schemas/PlayerRosterSize'
+        minimumAge:
+          $ref: '#/components/schemas/Age'
+        playerRosterSize:
+          $ref: '#/components/schemas/PlayerRosterSize'
+        averageAge:
+          $ref: '#/components/schemas/Age'
     Tournament:
       required:
         - id
@@ -166,6 +280,15 @@ components:
           $ref: '#/components/schemas/LocalDate'
         city:
           $ref: '#/components/schemas/City'
+    Player:
+      required:
+        - id
+        - nickname
+      properties:
+        id:
+          $ref: '#/components/schemas/UserId'
+        nickname:
+          $ref: '#/components/schemas/Nickname'
     UserId:
       type: string
       format: uuid
@@ -204,6 +327,17 @@ components:
         - code
         - message
   requestBodies:
+    PlayerCreationRequest:
+      description: Player that needs to be added to the tournament
+      content:
+        application/json:
+          schema:
+            required:
+              - userId
+            properties:
+              userId:
+                $ref: '#/components/schemas/UserId'
+      required: true
     TournamentUpdateRequest:
       description: Tournament that needs to be created or updated
       content:

@@ -4,6 +4,7 @@ import fr.sdecout.repository.domain.TestData.Cities.naples
 import fr.sdecout.repository.domain.TestData.Cities.nyc
 import fr.sdecout.repository.domain.TestData.Cities.orlando
 import fr.sdecout.repository.domain.TestData.Cities.tokyo
+import fr.sdecout.repository.domain.core.roster.Player
 import fr.sdecout.repository.domain.core.tournament.RosterSize
 import fr.sdecout.repository.domain.core.tournament.RosterSize.Companion.players
 import fr.sdecout.repository.domain.core.tournament.Tournament
@@ -52,6 +53,15 @@ object TestData {
 
         val tournament1 get() = Tournament.from("019b41c9-f36e-7f2d-bcd0-50c3e5729eda", "Spring tournament", 10.players, 18.yearsOld)
         val tournament2 get() = Tournament.from("019ccebc-7d4d-7a84-8691-a97e0725e8c7", "Summer tournament", 2.players, null)
+    }
+
+    object Players {
+        fun User.toPlayer() = Player(id, preferredNickname)
+
+        val giorno get() = Users.giorno.toPlayer()
+        val jotaro get() = Users.jotaro.toPlayer()
+        val jolyne get() = Users.jolyne.toPlayer()
+        val joseph get() = Users.joseph.toPlayer()
     }
 
 }

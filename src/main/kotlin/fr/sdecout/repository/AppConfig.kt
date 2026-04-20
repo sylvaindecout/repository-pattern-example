@@ -1,15 +1,11 @@
 package fr.sdecout.repository
 
-import fr.sdecout.repository.domain.api.FindTournament
-import fr.sdecout.repository.domain.api.FindUser
-import fr.sdecout.repository.domain.api.UpsertTournament
-import fr.sdecout.repository.domain.api.UpsertUser
-import fr.sdecout.repository.domain.shell.TournamentAccessService
-import fr.sdecout.repository.domain.shell.TournamentUpdateService
-import fr.sdecout.repository.domain.shell.UserAccessService
-import fr.sdecout.repository.domain.shell.UserUpdateService
+import fr.sdecout.repository.domain.api.*
+import fr.sdecout.repository.domain.shell.*
+import fr.sdecout.repository.domain.spi.PlayerRosterEntries
 import fr.sdecout.repository.domain.spi.Tournaments
 import fr.sdecout.repository.domain.spi.Users
+import fr.sdecout.repository.infra.driven.jdbc.DbPlayerRosterEntries
 import fr.sdecout.repository.infra.driven.jdbc.DbTournaments
 import fr.sdecout.repository.infra.driven.jdbc.DbUsers
 import org.jooq.DSLContext
@@ -38,6 +34,9 @@ class AppConfig {
     @Bean
     fun tournaments(dsl: DSLContext): Tournaments = DbTournaments(dsl)
 
+    @Bean
+    fun playerRosterEntries(dsl: DSLContext): PlayerRosterEntries = DbPlayerRosterEntries(dsl)
+
     /* Services */
 
     @Bean
@@ -54,6 +53,14 @@ class AppConfig {
     fun tournamentUpdateService(tournaments: Tournaments): TournamentUpdateService =
         TournamentUpdateService(tournaments)
 
+    @Bean
+    fun playerAccessService(tournaments: Tournaments, playerRosterEntries: PlayerRosterEntries): PlayerAccessService =
+        PlayerAccessService(tournaments, playerRosterEntries)
+
+    @Bean
+    fun playerUpdateService(users: Users, tournaments: Tournaments, playerRosterEntries: PlayerRosterEntries): PlayerUpdateService =
+        PlayerUpdateService(users, tournaments, playerRosterEntries)
+
     /* Left adapters */
 
     @Bean
@@ -67,5 +74,17 @@ class AppConfig {
 
     @Bean
     fun upsertTournament(tournaments: Tournaments): UpsertTournament = tournamentUpdateService(tournaments)
+
+    @Bean
+    fun listPlayers(users: Users, tournaments: Tournaments, playerRosterEntries: PlayerRosterEntries): ListPlayers =
+        playerAccessService(tournaments, playerRosterEntries)
+
+    @Bean
+    fun addPlayer(users: Users, tournaments: Tournaments, playerRosterEntries: PlayerRosterEntries): AddPlayer =
+        playerUpdateService(users, tournaments, playerRosterEntries)
+
+    @Bean
+    fun resetPlayerRoster(users: Users, tournaments: Tournaments, playerRosterEntries: PlayerRosterEntries): ResetPlayerRoster =
+        playerUpdateService(users, tournaments, playerRosterEntries)
 
 }

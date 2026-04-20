@@ -5,3 +5,6 @@ databaseChangeLog:
   - include:
       file: 002.add-tournaments.yaml
       relativeToChangelogFile: true
+  - include:
+      file: 003.add-player-roster.yaml
+      relativeToChangelogFile: true
