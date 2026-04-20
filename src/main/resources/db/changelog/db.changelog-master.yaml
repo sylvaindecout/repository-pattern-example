@@ -1,1 +1,7 @@
 databaseChangeLog:
+  - include:
+      file: 001.add-users.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: 002.add-tournaments.yaml
+      relativeToChangelogFile: true

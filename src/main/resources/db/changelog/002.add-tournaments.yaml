@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-tournaments
+      author: SDC
+      changes:
+        - createTable:
+            tableName: TOURNAMENT
+            columns:
+              - column:
+                  name: ID
+                  type: VARCHAR(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: NAME
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: MAX_PLAYER_ROSTER_SIZE
+                  type: SMALLINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: MIN_AGE
+                  type: SMALLINT
+                  constraints:
+                    nullable: true
