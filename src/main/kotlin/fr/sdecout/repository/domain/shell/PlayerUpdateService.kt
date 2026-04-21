@@ -2,6 +2,8 @@ package fr.sdecout.repository.domain.shell
 
 import fr.sdecout.repository.domain.api.AddPlayer
 import fr.sdecout.repository.domain.api.ResetPlayerRoster
+import fr.sdecout.repository.domain.core.alerting.Notification
+import fr.sdecout.repository.domain.core.alerting.PriorityLevel.HIGH
 import fr.sdecout.repository.domain.core.player.PlayerOverview
 import fr.sdecout.repository.domain.core.roster.Player
 import fr.sdecout.repository.domain.core.roster.PlayerRoster
@@ -10,6 +12,7 @@ import fr.sdecout.repository.domain.core.roster.availableNicknameClosestTo
 import fr.sdecout.repository.domain.core.tournament.TournamentId
 import fr.sdecout.repository.domain.core.user.User
 import fr.sdecout.repository.domain.core.user.UserId
+import fr.sdecout.repository.domain.spi.Alerting
 import fr.sdecout.repository.domain.spi.PlayerRosters
 import fr.sdecout.repository.domain.spi.Tournaments
 import fr.sdecout.repository.domain.spi.Users
@@ -19,6 +22,7 @@ class PlayerUpdateService(
     private val users: Users,
     private val tournaments: Tournaments,
     private val playerRosters: PlayerRosters,
+    private val alerting: Alerting,
 ) : ResetPlayerRoster, AddPlayer {
 
     override fun resetPlayerRoster(tournamentId: TournamentId) {
@@ -63,10 +67,13 @@ class PlayerUpdateService(
 
     private fun PlayerRoster.rejectOnBrokenAgeLimit(player: PlayerOverview) = also {
         if (minimumAge != null && player.age < minimumAge) {
+            sendAlert("Player ${player.nickname} (${player.age}) tried to register to tournament restricted to $minimumAge+")
             throw DomainExceptions.BreakingAgeLimit(tournamentId, player.nickname, player.age, minimumAge)
         }
     }
 
     private fun PlayerRoster.add(player: PlayerOverview) = add(Player(player.userId, player.nickname))
+
+    private fun sendAlert(content: String) = alerting.send(Notification.of(priority = HIGH, content))
 
 }
