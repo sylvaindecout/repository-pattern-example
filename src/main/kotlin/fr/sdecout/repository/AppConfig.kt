@@ -54,8 +54,8 @@ class AppConfig {
         TournamentUpdateService(tournaments)
 
     @Bean
-    fun playerAccessService(tournaments: Tournaments, playerRosters: PlayerRosters): PlayerAccessService =
-        PlayerAccessService(tournaments, playerRosters)
+    fun playerAccessService(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters): PlayerAccessService =
+        PlayerAccessService(users, tournaments, playerRosters)
 
     @Bean
     fun playerUpdateService(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters): PlayerUpdateService =
@@ -77,7 +77,7 @@ class AppConfig {
 
     @Bean
     fun listPlayers(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters): ListPlayers =
-        playerAccessService(tournaments, playerRosters)
+        playerAccessService(users, tournaments, playerRosters)
 
     @Bean
     fun addPlayer(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters): AddPlayer =

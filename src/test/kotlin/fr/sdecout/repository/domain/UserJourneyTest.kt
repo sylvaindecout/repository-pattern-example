@@ -1,6 +1,6 @@
 package fr.sdecout.repository.domain
 
-import fr.sdecout.repository.domain.TestData.Players
+import fr.sdecout.repository.domain.TestData.PlayerOverviews
 import fr.sdecout.repository.domain.TestData.Tournaments.tournament1
 import fr.sdecout.repository.domain.TestData.Users.jotaro
 import fr.sdecout.repository.domain.TestData.today
@@ -26,7 +26,7 @@ class UserJourneyTest {
     val upsertTournament: UpsertTournament = TournamentUpdateService(tournaments)
     val findTournament: FindTournament = TournamentAccessService(tournaments)
     val addPlayer: AddPlayer = PlayerUpdateService(users, tournaments, playerRosters)
-    val listPlayers: ListPlayers = PlayerAccessService(tournaments, playerRosters)
+    val listPlayers: ListPlayers = PlayerAccessService(users, tournaments, playerRosters)
     val resetPlayerRoster: ResetPlayerRoster = PlayerUpdateService(users, tournaments, playerRosters)
 
     @Test
@@ -40,7 +40,7 @@ class UserJourneyTest {
         findTournament(tournament1.id) shouldBe tournament1
 
         // configure player info
-        val player = Players.jotaro
+        val player = PlayerOverviews.jotaro
 
         // select a tournament
         val selectedTournamentId = tournament1.id

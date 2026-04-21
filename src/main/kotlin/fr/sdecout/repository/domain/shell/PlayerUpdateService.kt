@@ -2,6 +2,7 @@ package fr.sdecout.repository.domain.shell
 
 import fr.sdecout.repository.domain.api.AddPlayer
 import fr.sdecout.repository.domain.api.ResetPlayerRoster
+import fr.sdecout.repository.domain.core.player.PlayerOverview
 import fr.sdecout.repository.domain.core.roster.Player
 import fr.sdecout.repository.domain.core.roster.PlayerRoster
 import fr.sdecout.repository.domain.core.roster.PlayerRoster.Companion.toPlayerRoster
@@ -24,11 +25,11 @@ class PlayerUpdateService(
         playerRosters.remove(tournamentId)
     }
 
-    override fun addPlayer(tournamentId: TournamentId, userId: UserId, addedOn: () -> LocalDate): Player {
+    override fun addPlayer(tournamentId: TournamentId, userId: UserId, addedOn: () -> LocalDate): PlayerOverview {
         val user = users.get(userId)
         val playerRoster = playerRosters.get(tournamentId)
             .rejectIfAlreadyFull()
-        val player = user.toPlayerIn(playerRoster)
+        val player = user.toPlayerIn(playerRoster, addedOn)
         playerRoster
             .rejectOnDuplicate(player)
             .add(player)
@@ -43,18 +44,22 @@ class PlayerUpdateService(
         ?: tournaments.find(tournamentId)?.toPlayerRoster()
         ?: throw DomainExceptions.TournamentNotFound(tournamentId)
 
-    private fun User.toPlayerIn(playerRoster: PlayerRoster) = Player(
+    private fun User.toPlayerIn(playerRoster: PlayerRoster, addedOn: () -> LocalDate) = PlayerOverview(
         userId = id,
         nickname = playerRoster.availableNicknameClosestTo(preferredNickname),
+        age = age(addedOn),
+        city = city,
     )
 
     private fun PlayerRoster.rejectIfAlreadyFull() = also {
         if (isFull) throw DomainExceptions.FullPlayerRoster(tournamentId)
     }
 
-    private fun PlayerRoster.rejectOnDuplicate(player: Player) = also {
+    private fun PlayerRoster.rejectOnDuplicate(player: PlayerOverview) = also {
         if (player.userId in this)
             throw DomainExceptions.DuplicatePlayer(tournamentId, player.userId)
     }
+
+    private fun PlayerRoster.add(player: PlayerOverview) = add(Player(player.userId, player.nickname))
 
 }
