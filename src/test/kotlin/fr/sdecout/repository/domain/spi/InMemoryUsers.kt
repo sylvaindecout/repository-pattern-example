@@ -8,6 +8,8 @@ class InMemoryUsers : Users {
 
     override fun find(id: UserId): User? = values[id]
 
+    override fun findIn(ids: Collection<UserId>): Collection<User> = ids.mapNotNull { find(it) }
+
     override fun save(user: User) {
         values[user.id] = user
     }

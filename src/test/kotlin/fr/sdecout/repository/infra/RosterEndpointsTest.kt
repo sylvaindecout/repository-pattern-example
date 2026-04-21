@@ -45,11 +45,15 @@ class RosterEndpointsTest {
                     """[
                     {
                         "id": "019cc9df-0a49-7fe8-9265-fd00996bd267",
-                        "nickname": "giorno"
+                        "nickname": "giorno",
+                        "age": 12,
+                        "city": "naples"
                     },
                     {
                         "id": "019cc9df-a40f-7dcf-9ed5-ab5d27ab9ff1",
-                        "nickname": "jotaro"
+                        "nickname": "jotaro",
+                        "age": 26,
+                        "city": "tokyo"
                     }
                 ]"""
                 )

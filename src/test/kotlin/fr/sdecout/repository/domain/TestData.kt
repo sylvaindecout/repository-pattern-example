@@ -4,6 +4,7 @@ import fr.sdecout.repository.domain.TestData.Cities.naples
 import fr.sdecout.repository.domain.TestData.Cities.nyc
 import fr.sdecout.repository.domain.TestData.Cities.orlando
 import fr.sdecout.repository.domain.TestData.Cities.tokyo
+import fr.sdecout.repository.domain.core.player.PlayerOverview
 import fr.sdecout.repository.domain.core.roster.Player
 import fr.sdecout.repository.domain.core.tournament.RosterSize
 import fr.sdecout.repository.domain.core.tournament.RosterSize.Companion.players
@@ -62,6 +63,15 @@ object TestData {
         val jotaro get() = Users.jotaro.toPlayer()
         val jolyne get() = Users.jolyne.toPlayer()
         val joseph get() = Users.joseph.toPlayer()
+    }
+
+    object PlayerOverviews {
+        fun User.toPlayerOverview() = PlayerOverview(id, preferredNickname, age { today }, city)
+
+        val giorno get() = Users.giorno.toPlayerOverview()
+        val jotaro get() = Users.jotaro.toPlayerOverview()
+        val jolyne get() = Users.jolyne.toPlayerOverview()
+        val joseph get() = Users.joseph.toPlayerOverview()
     }
 
 }

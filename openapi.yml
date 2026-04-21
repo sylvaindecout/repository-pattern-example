@@ -284,11 +284,17 @@ components:
       required:
         - id
         - nickname
+        - age
+        - city
       properties:
         id:
           $ref: '#/components/schemas/UserId'
         nickname:
           $ref: '#/components/schemas/Nickname'
+        age:
+          $ref: '#/components/schemas/Age'
+        city:
+          $ref: '#/components/schemas/City'
     UserId:
       type: string
       format: uuid

@@ -14,6 +14,11 @@ class DbUsers(private val dsl: DSLContext) : Users {
         .where(PLAYER.ID.equal(id))
         .fetchOne { it.toDomain() }
 
+    override fun findIn(ids: Collection<UserId>): Collection<User> = dsl
+        .selectFrom(PLAYER)
+        .where(PLAYER.ID.`in`(ids))
+        .fetch { it.toDomain() }
+
     override fun save(user: User) {
         user.toRecord().let { record ->
             dsl.insertInto(PLAYER)
