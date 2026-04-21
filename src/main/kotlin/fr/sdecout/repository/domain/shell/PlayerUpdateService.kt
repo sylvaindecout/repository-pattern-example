@@ -12,7 +12,7 @@ import fr.sdecout.repository.domain.core.roster.availableNicknameClosestTo
 import fr.sdecout.repository.domain.core.tournament.TournamentId
 import fr.sdecout.repository.domain.core.user.User
 import fr.sdecout.repository.domain.core.user.UserId
-import fr.sdecout.repository.domain.spi.Alerting
+import fr.sdecout.repository.domain.spi.Notifications
 import fr.sdecout.repository.domain.spi.PlayerRosters
 import fr.sdecout.repository.domain.spi.Tournaments
 import fr.sdecout.repository.domain.spi.Users
@@ -22,7 +22,7 @@ class PlayerUpdateService(
     private val users: Users,
     private val tournaments: Tournaments,
     private val playerRosters: PlayerRosters,
-    private val alerting: Alerting,
+    private val notifications: Notifications,
 ) : ResetPlayerRoster, AddPlayer {
 
     override fun resetPlayerRoster(tournamentId: TournamentId) {
@@ -74,6 +74,9 @@ class PlayerUpdateService(
 
     private fun PlayerRoster.add(player: PlayerOverview) = add(Player(player.userId, player.nickname))
 
-    private fun sendAlert(content: String) = alerting.send(Notification.of(priority = HIGH, content))
+    /**
+     * Issue: Does the pattern improve readability? If not, for what benefit?
+     */
+    private fun sendAlert(content: String) = notifications.add(Notification.of(priority = HIGH, content))
 
 }

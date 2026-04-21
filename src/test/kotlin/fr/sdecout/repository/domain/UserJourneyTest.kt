@@ -6,12 +6,11 @@ import fr.sdecout.repository.domain.TestData.Users.jotaro
 import fr.sdecout.repository.domain.TestData.today
 import fr.sdecout.repository.domain.api.*
 import fr.sdecout.repository.domain.shell.*
-import fr.sdecout.repository.domain.spi.Alerting
+import fr.sdecout.repository.domain.spi.InMemoryNotifications
 import fr.sdecout.repository.domain.spi.InMemoryPlayerRosters
 import fr.sdecout.repository.domain.spi.InMemoryTournaments
 import fr.sdecout.repository.domain.spi.InMemoryUsers
 import io.kotest.matchers.shouldBe
-import io.mockk.mockk
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
@@ -21,16 +20,16 @@ class UserJourneyTest {
     val users = InMemoryUsers()
     val tournaments = InMemoryTournaments()
     val playerRosters = InMemoryPlayerRosters()
-    val alerting = mockk<Alerting>(relaxed = true)
+    val notifications = InMemoryNotifications()
 
     // driving ports
     val upsertUser: UpsertUser = UserUpdateService(users)
     val findUser: FindUser = UserAccessService(users)
     val upsertTournament: UpsertTournament = TournamentUpdateService(tournaments)
     val findTournament: FindTournament = TournamentAccessService(tournaments)
-    val addPlayer: AddPlayer = PlayerUpdateService(users, tournaments, playerRosters, alerting)
+    val addPlayer: AddPlayer = PlayerUpdateService(users, tournaments, playerRosters, notifications)
     val listPlayers: ListPlayers = PlayerAccessService(users, tournaments, playerRosters)
-    val resetPlayerRoster: ResetPlayerRoster = PlayerUpdateService(users, tournaments, playerRosters, alerting)
+    val resetPlayerRoster: ResetPlayerRoster = PlayerUpdateService(users, tournaments, playerRosters, notifications)
 
     @Test
     fun `should support user journey`() {

@@ -1,10 +1,10 @@
 package fr.sdecout.repository.infra.driven.http
 
 import fr.sdecout.repository.domain.core.alerting.Notification
-import fr.sdecout.repository.domain.spi.Alerting
+import fr.sdecout.repository.domain.spi.Notifications
 
-class HttpAlerting : Alerting {
-    override fun send(message: Notification) {
-        println("Pretending to send message: $message")
+class HttpAlerting : Notifications {
+    override fun add(notification: Notification) {
+        println("Pretending to send message: $notification")
     }
 }
