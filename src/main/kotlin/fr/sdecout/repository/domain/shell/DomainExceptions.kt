@@ -1,6 +1,8 @@
 package fr.sdecout.repository.domain.shell
 
 import fr.sdecout.repository.domain.core.tournament.TournamentId
+import fr.sdecout.repository.domain.core.user.Age
+import fr.sdecout.repository.domain.core.user.Nickname
 import fr.sdecout.repository.domain.core.user.UserId
 
 object DomainExceptions {
@@ -15,5 +17,8 @@ object DomainExceptions {
 
     class DuplicatePlayer(tournamentId: TournamentId, userId: UserId) :
         RuntimeException("Tournament with id $tournamentId already includes a player with id $userId")
+
+    class BreakingAgeLimit(tournamentId: TournamentId, nickname: Nickname, age: Age, minimumAge: Age?) :
+        RuntimeException("Player with nickname $nickname is too young ($age) to register to tournament with id $tournamentId (limit: $minimumAge)")
 
 }

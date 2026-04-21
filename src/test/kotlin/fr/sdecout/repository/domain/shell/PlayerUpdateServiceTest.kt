@@ -78,6 +78,17 @@ class PlayerUpdateServiceTest {
     }
 
     @Test
+    fun `should fail to add player if it breaks age limit of the tournament`() {
+        users.save(jolyne)
+        val tournament = tournament1
+        tournaments.save(tournament)
+
+        shouldThrow<DomainExceptions.BreakingAgeLimit> {
+            service.addPlayer(tournament.id, jolyne.id, addedOn = { today })
+        }.message shouldBe "Player with nickname ${Players.jolyne.nickname} is too young (6 years old) to register to tournament with id ${tournament.id} (limit: ${tournament.minimumAge})"
+    }
+
+    @Test
     fun `should fail to add player that is already in roster`() {
         users.save(joseph)
         tournaments.save(tournament1)
