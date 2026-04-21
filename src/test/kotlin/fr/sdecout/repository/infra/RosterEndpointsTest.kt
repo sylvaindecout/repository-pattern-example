@@ -103,6 +103,17 @@ class RosterEndpointsTest {
     }
 
     @Test
+    fun `should fail to add a player below the age limit of a tournament`(@Autowired mockMvc: MockMvc) {
+        val userId = jolyne.id.value
+        val tournamentId = tournament1.id.value
+        mockMvc.perform(
+            post("/tournaments/{tournamentId}/players", tournamentId)
+                .contentType(APPLICATION_JSON)
+                .content("""{ "userId": "$userId" }""")
+        ).andExpect(status().isConflict())
+    }
+
+    @Test
     fun `should add a player to an existing tournament`(@Autowired mockMvc: MockMvc) {
         val userId = joseph.id.value
         val tournamentId = tournament1.id.value

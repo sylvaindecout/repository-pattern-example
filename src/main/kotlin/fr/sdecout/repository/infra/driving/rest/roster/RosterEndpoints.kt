@@ -62,4 +62,8 @@ class RosterEndpoints(
     @ResponseStatus(CONFLICT)
     fun handleDuplicatePlayer(ex: DomainExceptions.DuplicatePlayer) = ErrorResponseException(CONFLICT, ex)
 
+    @ExceptionHandler(DomainExceptions.BreakingAgeLimit::class)
+    @ResponseStatus(CONFLICT)
+    fun handleBreakingAgeLimit(ex: DomainExceptions.BreakingAgeLimit) = ErrorResponseException(CONFLICT, ex)
+
 }

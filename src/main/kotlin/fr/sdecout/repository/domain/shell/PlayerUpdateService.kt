@@ -32,6 +32,7 @@ class PlayerUpdateService(
         val player = user.toPlayerIn(playerRoster, addedOn)
         playerRoster
             .rejectOnDuplicate(player)
+            .rejectOnBrokenAgeLimit(player)
             .add(player)
             .also { playerRosters.save(it) }
         return player
@@ -58,6 +59,12 @@ class PlayerUpdateService(
     private fun PlayerRoster.rejectOnDuplicate(player: PlayerOverview) = also {
         if (player.userId in this)
             throw DomainExceptions.DuplicatePlayer(tournamentId, player.userId)
+    }
+
+    private fun PlayerRoster.rejectOnBrokenAgeLimit(player: PlayerOverview) = also {
+        if (minimumAge != null && player.age < minimumAge) {
+            throw DomainExceptions.BreakingAgeLimit(tournamentId, player.nickname, player.age, minimumAge)
+        }
     }
 
     private fun PlayerRoster.add(player: PlayerOverview) = add(Player(player.userId, player.nickname))
