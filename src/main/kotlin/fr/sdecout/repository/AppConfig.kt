@@ -2,9 +2,11 @@ package fr.sdecout.repository
 
 import fr.sdecout.repository.domain.api.*
 import fr.sdecout.repository.domain.shell.*
+import fr.sdecout.repository.domain.spi.Notifications
 import fr.sdecout.repository.domain.spi.PlayerRosters
 import fr.sdecout.repository.domain.spi.Tournaments
 import fr.sdecout.repository.domain.spi.Users
+import fr.sdecout.repository.infra.driven.http.HttpAlerting
 import fr.sdecout.repository.infra.driven.jdbc.DbPlayerRosters
 import fr.sdecout.repository.infra.driven.jdbc.DbTournaments
 import fr.sdecout.repository.infra.driven.jdbc.DbUsers
@@ -37,6 +39,9 @@ class AppConfig {
     @Bean
     fun playerRosters(dsl: DSLContext): PlayerRosters = DbPlayerRosters(dsl)
 
+    @Bean
+    fun alerting(): Notifications = HttpAlerting()
+
     /* Services */
 
     @Bean
@@ -58,8 +63,8 @@ class AppConfig {
         PlayerAccessService(users, tournaments, playerRosters)
 
     @Bean
-    fun playerUpdateService(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters): PlayerUpdateService =
-        PlayerUpdateService(users, tournaments, playerRosters)
+    fun playerUpdateService(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters, notifications: Notifications): PlayerUpdateService =
+        PlayerUpdateService(users, tournaments, playerRosters, notifications)
 
     /* Left adapters */
 
@@ -80,11 +85,11 @@ class AppConfig {
         playerAccessService(users, tournaments, playerRosters)
 
     @Bean
-    fun addPlayer(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters): AddPlayer =
-        playerUpdateService(users, tournaments, playerRosters)
+    fun addPlayer(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters, notifications: Notifications): AddPlayer =
+        playerUpdateService(users, tournaments, playerRosters, notifications)
 
     @Bean
-    fun resetPlayerRoster(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters): ResetPlayerRoster =
-        playerUpdateService(users, tournaments, playerRosters)
+    fun resetPlayerRoster(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters, notifications: Notifications): ResetPlayerRoster =
+        playerUpdateService(users, tournaments, playerRosters, notifications)
 
 }

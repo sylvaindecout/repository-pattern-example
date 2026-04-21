@@ -7,16 +7,20 @@ import fr.sdecout.repository.domain.TestData.Users.giorno
 import fr.sdecout.repository.domain.TestData.Users.jolyne
 import fr.sdecout.repository.domain.TestData.Users.joseph
 import fr.sdecout.repository.domain.TestData.today
+import fr.sdecout.repository.domain.core.alerting.Notification
+import fr.sdecout.repository.domain.core.alerting.PriorityLevel.HIGH
 import fr.sdecout.repository.domain.core.roster.Player
 import fr.sdecout.repository.domain.core.roster.PlayerRoster
 import fr.sdecout.repository.domain.core.roster.PlayerRoster.Companion.toPlayerRoster
 import fr.sdecout.repository.domain.core.tournament.RosterSize.Companion.players
 import fr.sdecout.repository.domain.core.tournament.TournamentId
 import fr.sdecout.repository.domain.core.user.UserId
+import fr.sdecout.repository.domain.spi.InMemoryNotifications
 import fr.sdecout.repository.domain.spi.InMemoryPlayerRosters
 import fr.sdecout.repository.domain.spi.InMemoryTournaments
 import fr.sdecout.repository.domain.spi.InMemoryUsers
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -27,8 +31,9 @@ class PlayerUpdateServiceTest {
     val users = InMemoryUsers()
     val tournaments = InMemoryTournaments()
     val playerRosters = InMemoryPlayerRosters()
+    val notifications = InMemoryNotifications()
 
-    val service = PlayerUpdateService(users, tournaments, playerRosters)
+    val service = PlayerUpdateService(users, tournaments, playerRosters, notifications)
 
     @AfterEach
     fun afterEach() {
@@ -86,6 +91,7 @@ class PlayerUpdateServiceTest {
         shouldThrow<DomainExceptions.BreakingAgeLimit> {
             service.addPlayer(tournament.id, jolyne.id, addedOn = { today })
         }.message shouldBe "Player with nickname ${Players.jolyne.nickname} is too young (6 years old) to register to tournament with id ${tournament.id} (limit: ${tournament.minimumAge})"
+        notifications.findAll() shouldContain Notification.of(priority = HIGH, "Player ${Players.jolyne.nickname} (6 years old) tried to register to tournament restricted to ${tournament.minimumAge}+")
     }
 
     @Test
