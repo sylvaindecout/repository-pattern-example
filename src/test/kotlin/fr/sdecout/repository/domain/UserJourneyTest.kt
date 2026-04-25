@@ -6,12 +6,15 @@ import fr.sdecout.repository.domain.TestData.Users.jotaro
 import fr.sdecout.repository.domain.TestData.today
 import fr.sdecout.repository.domain.api.*
 import fr.sdecout.repository.domain.core.scoreboard.Score.Companion.points
+import fr.sdecout.repository.domain.core.search.TournamentSearchCriteria.Companion.and
+import fr.sdecout.repository.domain.core.search.TournamentSearchCriteria.Companion.where
+import fr.sdecout.repository.domain.core.search.TournamentSearchCriterion.Companion.accessibleForAge
+import fr.sdecout.repository.domain.core.search.TournamentSearchCriterion.Companion.openSlotsOnly
+import fr.sdecout.repository.domain.core.search.TournamentSearchResult
+import fr.sdecout.repository.domain.core.search.TournamentSearchResultItem
+import fr.sdecout.repository.domain.core.tournament.RosterSize.Companion.players
 import fr.sdecout.repository.domain.shell.*
-import fr.sdecout.repository.domain.spi.Alerting
-import fr.sdecout.repository.domain.spi.InMemoryPlayerRosters
-import fr.sdecout.repository.domain.spi.InMemoryScoreboardEntries
-import fr.sdecout.repository.domain.spi.InMemoryTournaments
-import fr.sdecout.repository.domain.spi.InMemoryUsers
+import fr.sdecout.repository.domain.spi.*
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import org.junit.jupiter.api.Tag
@@ -30,7 +33,8 @@ class UserJourneyTest {
     val upsertUser: UpsertUser = UserUpdateService(users)
     val findUser: FindUser = UserAccessService(users)
     val upsertTournament: UpsertTournament = TournamentUpdateService(tournaments)
-    val findTournament: FindTournament = TournamentAccessService(tournaments)
+    val findTournament: FindTournament = TournamentAccessService(users, tournaments, playerRosters)
+    val searchTournaments: SearchTournaments = TournamentAccessService(users, tournaments, playerRosters)
     val addPlayer: AddPlayer = PlayerUpdateService(users, tournaments, playerRosters, scoreboardEntries, alerting)
     val updateScore: UpdateScore = PlayerUpdateService(users, tournaments, playerRosters, scoreboardEntries, alerting)
     val findPlayer: FindPlayer = PlayerAccessService(users, tournaments, playerRosters, scoreboardEntries)
@@ -51,7 +55,21 @@ class UserJourneyTest {
         val player = PlayerOverviews.jotaro
 
         // select a tournament
-        val selectedTournamentId = tournament1.id
+        val eligibleTournaments = searchTournaments(
+            where(accessibleForAge(player.age)) and openSlotsOnly(),
+            requestedOn = { today }
+        )
+        eligibleTournaments shouldBe TournamentSearchResult.of(
+            TournamentSearchResultItem(
+                id = tournament1.id,
+                name = tournament1.name,
+                maxPlayerRosterSize = tournament1.maxPlayerRosterSize,
+                playerRostersSize = 0.players,
+                minimumAge = tournament1.minimumAge,
+                averageAge = null,
+            ),
+        )
+        val selectedTournamentId = eligibleTournaments.items.single().id
 
         // complete 1st challenge
         addPlayer(selectedTournamentId, jotaro.id, addedOn = { today })

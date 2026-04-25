@@ -49,8 +49,8 @@ class AppConfig {
     fun userUpdateService(users: Users): UserUpdateService = UserUpdateService(users)
 
     @Bean
-    fun tournamentAccessService(tournaments: Tournaments): TournamentAccessService =
-        TournamentAccessService(tournaments)
+    fun tournamentAccessService(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters): TournamentAccessService =
+        TournamentAccessService(users, tournaments, playerRosters)
 
     @Bean
     fun tournamentUpdateService(tournaments: Tournaments): TournamentUpdateService =
@@ -73,7 +73,8 @@ class AppConfig {
     fun upsertUser(users: Users): UpsertUser = userUpdateService(users)
 
     @Bean
-    fun findTournament(tournaments: Tournaments): FindTournament = tournamentAccessService(tournaments)
+    fun findTournament(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters): FindTournament =
+        tournamentAccessService(users, tournaments, playerRosters)
 
     @Bean
     fun upsertTournament(tournaments: Tournaments): UpsertTournament = tournamentUpdateService(tournaments)
@@ -97,5 +98,9 @@ class AppConfig {
     @Bean
     fun updateScore(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters, scoreboardEntries: ScoreboardEntries, alerting: Alerting): UpdateScore =
         playerUpdateService(users, tournaments, playerRosters, scoreboardEntries, alerting)
+
+    @Bean
+    fun searchTournaments(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters): SearchTournaments =
+        tournamentAccessService(users, tournaments, playerRosters)
 
 }
