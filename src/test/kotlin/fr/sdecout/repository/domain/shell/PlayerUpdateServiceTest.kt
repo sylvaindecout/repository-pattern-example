@@ -155,6 +155,18 @@ class PlayerUpdateServiceTest {
         playerRosters.find(tournament2.id) shouldBeIgnoringPendingPlayers tournament2.toPlayerRoster(Players.jolyne, Players.giorno)
     }
 
+    @Test
+    fun `should update score`() {
+        users.save(jolyne)
+        users.save(giorno)
+        tournaments.save(tournament2)
+        playerRosters.save(tournament2.toPlayerRoster(Players.jolyne, Players.giorno.copy(score = 12.points)))
+
+        service.updateScore(tournament2.id, giorno.id, score = 54.points)
+
+        playerRosters.find(tournament2.id) shouldBeIgnoringPendingPlayers tournament2.toPlayerRoster(Players.jolyne, Players.giorno.copy(score = 54.points))
+    }
+
     private infix fun PlayerRoster?.shouldBeIgnoringPendingPlayers(expected: PlayerRoster) = shouldNotBeNull()
-        .shouldBeEqualToIgnoringFields(expected, PlayerRoster::pendingPlayers)
+        .shouldBeEqualToIgnoringFields(expected, PlayerRoster::pendingPlayers, PlayerRoster::pendingScoreUpdates)
 }

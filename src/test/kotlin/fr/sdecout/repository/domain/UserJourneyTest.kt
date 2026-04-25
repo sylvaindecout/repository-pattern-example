@@ -5,6 +5,7 @@ import fr.sdecout.repository.domain.TestData.Tournaments.tournament1
 import fr.sdecout.repository.domain.TestData.Users.jotaro
 import fr.sdecout.repository.domain.TestData.today
 import fr.sdecout.repository.domain.api.*
+import fr.sdecout.repository.domain.core.scoreboard.Score.Companion.points
 import fr.sdecout.repository.domain.shell.*
 import fr.sdecout.repository.domain.spi.Alerting
 import fr.sdecout.repository.domain.spi.InMemoryPlayerRosters
@@ -29,6 +30,7 @@ class UserJourneyTest {
     val upsertTournament: UpsertTournament = TournamentUpdateService(tournaments)
     val findTournament: FindTournament = TournamentAccessService(tournaments)
     val addPlayer: AddPlayer = PlayerUpdateService(users, tournaments, playerRosters, alerting)
+    val updateScore: UpdateScore = PlayerUpdateService(users, tournaments, playerRosters, alerting)
     val findPlayer: FindPlayer = PlayerAccessService(users, tournaments, playerRosters)
     val listPlayers: ListPlayers = PlayerAccessService(users, tournaments, playerRosters)
     val resetPlayerRoster: ResetPlayerRoster = PlayerUpdateService(users, tournaments, playerRosters, alerting)
@@ -51,10 +53,15 @@ class UserJourneyTest {
 
         // complete 1st challenge
         addPlayer(selectedTournamentId, jotaro.id, addedOn = { today })
-        findPlayer(selectedTournamentId, player.userId, requestedOn = { today }) shouldBe player
+        updateScore(selectedTournamentId, player.userId, 12.points)
+        findPlayer(selectedTournamentId, player.userId, requestedOn = { today }) shouldBe player.copy(score = 12.points)
+
+        // complete 2nd challenge
+        updateScore(selectedTournamentId, player.userId, 34.points)
+        findPlayer(selectedTournamentId, player.userId, requestedOn = { today }) shouldBe player.copy(score = 34.points)
 
         // complete session
-        listPlayers(selectedTournamentId, requestedOn = { today }) shouldBe listOf(player)
+        listPlayers(selectedTournamentId, requestedOn = { today }) shouldBe listOf(player.copy(score = 34.points))
         resetPlayerRoster(selectedTournamentId)
         listPlayers(selectedTournamentId, requestedOn = { today }) shouldBe emptyList()
         findPlayer(selectedTournamentId, player.userId, requestedOn = { today }) shouldBe null

@@ -8,12 +8,17 @@ import fr.sdecout.repository.domain.core.user.Age
 import fr.sdecout.repository.domain.core.user.UserId
 import java.util.Objects.hash
 
+/**
+ * Issue: We decided to aggregate players because of the roster size check. How is it relevant when you update a score?
+ * The player roster and the scoreboard evolve at different times, with distinct sets of constraints.
+ */
 class PlayerRoster private constructor(
     val tournamentId: TournamentId,
     val maxPlayerRosterSize: RosterSize,
     val minimumAge: Age?,
     private val playersById: Map<UserId, Player> = emptyMap(),
     val pendingPlayers: Set<Player> = emptySet(),
+    val pendingScoreUpdates: Set<Player> = emptySet(),
 ) {
     val size: RosterSize = playersById.size.players
 
@@ -66,6 +71,22 @@ class PlayerRoster private constructor(
             minimumAge = minimumAge,
             playersById = playersById + (it.userId to it),
             pendingPlayers = pendingPlayers + it,
+            pendingScoreUpdates = pendingScoreUpdates,
+        )
+    }
+
+    fun update(player: Player): PlayerRoster = player.also {
+        require(it.userId in playersById) {
+            "Player roster must include updated user"
+        }
+    }.let {
+        PlayerRoster(
+            tournamentId = tournamentId,
+            maxPlayerRosterSize = maxPlayerRosterSize,
+            minimumAge = minimumAge,
+            playersById = playersById + (it.userId to it),
+            pendingPlayers = pendingPlayers,
+            pendingScoreUpdates = pendingScoreUpdates + it,
         )
     }
 
@@ -80,12 +101,14 @@ class PlayerRoster private constructor(
         if (minimumAge != other.minimumAge) return false
         if (playersById != other.playersById) return false
         if (pendingPlayers != other.pendingPlayers) return false
+        if (pendingScoreUpdates != other.pendingScoreUpdates) return false
 
         return true
     }
 
-    override fun hashCode(): Int = hash(tournamentId, maxPlayerRosterSize, minimumAge, playersById, pendingPlayers)
+    override fun hashCode(): Int =
+        hash(tournamentId, maxPlayerRosterSize, minimumAge, playersById, pendingPlayers, pendingScoreUpdates)
 
     override fun toString(): String =
-        "PlayerRoster(tournamentId=$tournamentId, maxPlayerRosterSize=$maxPlayerRosterSize, minimumAge=$minimumAge, players=$players, pendingPlayers=$pendingPlayers)"
+        "PlayerRoster(tournamentId=$tournamentId, maxPlayerRosterSize=$maxPlayerRosterSize, minimumAge=$minimumAge, players=$players, pendingPlayers=$pendingPlayers), pendingScoreUpdates=$pendingScoreUpdates)"
 }

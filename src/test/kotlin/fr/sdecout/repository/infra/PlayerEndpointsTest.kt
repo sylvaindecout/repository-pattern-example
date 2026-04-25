@@ -8,13 +8,14 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
 @Tag("Acceptance")
 @SpringBootTest(classes = [TestApp::class])
@@ -48,6 +49,20 @@ class PlayerEndpointsTest {
                     }"""
                 )
             )
+    }
+
+    @Test
+    fun `should update the score of an existing player`(@Autowired mockMvc: MockMvc) {
+        val tournamentId = tournament1.id.value
+        val playerId = giorno.id.value
+        mockMvc.perform(
+            put("/tournaments/{tournamentId}/players/{playerId}/score", tournamentId, playerId)
+                .contentType(APPLICATION_JSON)
+                .content("""{ "score": 2500 }""")
+        ).andExpect(status().isNoContent())
+        mockMvc.perform(get("/tournaments/{tournamentId}/players/{playerId}", tournamentId, playerId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.score").value(2500))
     }
 
 }
