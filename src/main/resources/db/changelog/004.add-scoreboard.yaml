@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-scoreboard
+      author: SDC
+      changes:
+        - createTable:
+            tableName: SCOREBOARD_ENTRY
+            columns:
+              - column:
+                  name: TOURNAMENT
+                  type: VARCHAR(36)
+                  constraints:
+                    primaryKey: true
+                    foreignKeyName: FK_SCOREBOARD_ENTRY_TOURNAMENT
+                    references: TOURNAMENT(ID)
+              - column:
+                  name: PLAYER
+                  type: VARCHAR(36)
+                  constraints:
+                    primaryKey: true
+                    foreignKeyName: FK_SCOREBOARD_ENTRY_PLAYER
+                    references: PLAYER(ID)
+              - column:
+                  name: SCORE
+                  type: SMALLINT
+                  constraints:
+                    nullable: false
+
