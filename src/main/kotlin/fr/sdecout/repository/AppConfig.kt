@@ -2,14 +2,9 @@ package fr.sdecout.repository
 
 import fr.sdecout.repository.domain.api.*
 import fr.sdecout.repository.domain.shell.*
-import fr.sdecout.repository.domain.spi.Alerting
-import fr.sdecout.repository.domain.spi.PlayerRosters
-import fr.sdecout.repository.domain.spi.Tournaments
-import fr.sdecout.repository.domain.spi.Users
+import fr.sdecout.repository.domain.spi.*
 import fr.sdecout.repository.infra.driven.http.HttpAlerting
-import fr.sdecout.repository.infra.driven.jdbc.DbPlayerRosters
-import fr.sdecout.repository.infra.driven.jdbc.DbTournaments
-import fr.sdecout.repository.infra.driven.jdbc.DbUsers
+import fr.sdecout.repository.infra.driven.jdbc.*
 import org.jooq.DSLContext
 import org.jooq.conf.RenderNameCase
 import org.springframework.boot.autoconfigure.jooq.DefaultConfigurationCustomizer
@@ -40,6 +35,9 @@ class AppConfig {
     fun playerRosters(dsl: DSLContext): PlayerRosters = DbPlayerRosters(dsl)
 
     @Bean
+    fun scoreboardEntries(dsl: DSLContext): ScoreboardEntries = DbScoreboardEntries(dsl)
+
+    @Bean
     fun alerting(): Alerting = HttpAlerting()
 
     /* Services */
@@ -59,12 +57,12 @@ class AppConfig {
         TournamentUpdateService(tournaments)
 
     @Bean
-    fun playerAccessService(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters): PlayerAccessService =
-        PlayerAccessService(users, tournaments, playerRosters)
+    fun playerAccessService(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters, scoreboardEntries: ScoreboardEntries): PlayerAccessService =
+        PlayerAccessService(users, tournaments, playerRosters, scoreboardEntries)
 
     @Bean
-    fun playerUpdateService(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters, alerting: Alerting): PlayerUpdateService =
-        PlayerUpdateService(users, tournaments, playerRosters, alerting)
+    fun playerUpdateService(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters, scoreboardEntries: ScoreboardEntries, alerting: Alerting): PlayerUpdateService =
+        PlayerUpdateService(users, tournaments, playerRosters, scoreboardEntries, alerting)
 
     /* Left adapters */
 
@@ -81,19 +79,23 @@ class AppConfig {
     fun upsertTournament(tournaments: Tournaments): UpsertTournament = tournamentUpdateService(tournaments)
 
     @Bean
-    fun listPlayers(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters): ListPlayers =
-        playerAccessService(users, tournaments, playerRosters)
+    fun listPlayers(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters, scoreboardEntries: ScoreboardEntries): ListPlayers =
+        playerAccessService(users, tournaments, playerRosters, scoreboardEntries)
 
     @Bean
-    fun addPlayer(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters, alerting: Alerting): AddPlayer =
-        playerUpdateService(users, tournaments, playerRosters, alerting)
+    fun addPlayer(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters, scoreboardEntries: ScoreboardEntries, alerting: Alerting): AddPlayer =
+        playerUpdateService(users, tournaments, playerRosters, scoreboardEntries, alerting)
 
     @Bean
-    fun resetPlayerRoster(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters, alerting: Alerting): ResetPlayerRoster =
-        playerUpdateService(users, tournaments, playerRosters, alerting)
+    fun resetPlayerRoster(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters, scoreboardEntries: ScoreboardEntries, alerting: Alerting): ResetPlayerRoster =
+        playerUpdateService(users, tournaments, playerRosters, scoreboardEntries, alerting)
 
     @Bean
-    fun findPlayer(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters): FindPlayer =
-        playerAccessService(users, tournaments, playerRosters)
+    fun findPlayer(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters, scoreboardEntries: ScoreboardEntries): FindPlayer =
+        playerAccessService(users, tournaments, playerRosters, scoreboardEntries)
+
+    @Bean
+    fun updateScore(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters, scoreboardEntries: ScoreboardEntries, alerting: Alerting): UpdateScore =
+        playerUpdateService(users, tournaments, playerRosters, scoreboardEntries, alerting)
 
 }

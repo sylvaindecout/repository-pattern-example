@@ -9,6 +9,7 @@ import fr.sdecout.repository.domain.core.scoreboard.Score.Companion.points
 import fr.sdecout.repository.domain.shell.*
 import fr.sdecout.repository.domain.spi.Alerting
 import fr.sdecout.repository.domain.spi.InMemoryPlayerRosters
+import fr.sdecout.repository.domain.spi.InMemoryScoreboardEntries
 import fr.sdecout.repository.domain.spi.InMemoryTournaments
 import fr.sdecout.repository.domain.spi.InMemoryUsers
 import io.kotest.matchers.shouldBe
@@ -22,6 +23,7 @@ class UserJourneyTest {
     val users = InMemoryUsers()
     val tournaments = InMemoryTournaments()
     val playerRosters = InMemoryPlayerRosters()
+    val scoreboardEntries = InMemoryScoreboardEntries()
     val alerting = mockk<Alerting>(relaxed = true)
 
     // driving ports
@@ -29,11 +31,11 @@ class UserJourneyTest {
     val findUser: FindUser = UserAccessService(users)
     val upsertTournament: UpsertTournament = TournamentUpdateService(tournaments)
     val findTournament: FindTournament = TournamentAccessService(tournaments)
-    val addPlayer: AddPlayer = PlayerUpdateService(users, tournaments, playerRosters, alerting)
-    val updateScore: UpdateScore = PlayerUpdateService(users, tournaments, playerRosters, alerting)
-    val findPlayer: FindPlayer = PlayerAccessService(users, tournaments, playerRosters)
-    val listPlayers: ListPlayers = PlayerAccessService(users, tournaments, playerRosters)
-    val resetPlayerRoster: ResetPlayerRoster = PlayerUpdateService(users, tournaments, playerRosters, alerting)
+    val addPlayer: AddPlayer = PlayerUpdateService(users, tournaments, playerRosters, scoreboardEntries, alerting)
+    val updateScore: UpdateScore = PlayerUpdateService(users, tournaments, playerRosters, scoreboardEntries, alerting)
+    val findPlayer: FindPlayer = PlayerAccessService(users, tournaments, playerRosters, scoreboardEntries)
+    val listPlayers: ListPlayers = PlayerAccessService(users, tournaments, playerRosters, scoreboardEntries)
+    val resetPlayerRoster: ResetPlayerRoster = PlayerUpdateService(users, tournaments, playerRosters, scoreboardEntries, alerting)
 
     @Test
     fun `should support user journey`() {

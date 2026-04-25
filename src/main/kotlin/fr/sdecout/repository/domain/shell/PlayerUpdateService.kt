@@ -12,24 +12,24 @@ import fr.sdecout.repository.domain.core.roster.PlayerRoster.Companion.toPlayerR
 import fr.sdecout.repository.domain.core.roster.availableNicknameClosestTo
 import fr.sdecout.repository.domain.core.scoreboard.Score
 import fr.sdecout.repository.domain.core.scoreboard.Score.Companion.points
+import fr.sdecout.repository.domain.core.scoreboard.ScoreboardEntry
 import fr.sdecout.repository.domain.core.tournament.TournamentId
 import fr.sdecout.repository.domain.core.user.User
 import fr.sdecout.repository.domain.core.user.UserId
-import fr.sdecout.repository.domain.spi.Alerting
-import fr.sdecout.repository.domain.spi.PlayerRosters
-import fr.sdecout.repository.domain.spi.Tournaments
-import fr.sdecout.repository.domain.spi.Users
+import fr.sdecout.repository.domain.spi.*
 import java.time.LocalDate
 
 class PlayerUpdateService(
     private val users: Users,
     private val tournaments: Tournaments,
     private val playerRosters: PlayerRosters,
+    private val scoreboardEntries: ScoreboardEntries,
     private val alerting: Alerting,
 ) : ResetPlayerRoster, AddPlayer, UpdateScore {
 
     override fun resetPlayerRoster(tournamentId: TournamentId) {
         playerRosters.remove(tournamentId)
+        scoreboardEntries.removeAll(tournamentId)
     }
 
     override fun addPlayer(tournamentId: TournamentId, userId: UserId, addedOn: () -> LocalDate): PlayerOverview {
@@ -42,21 +42,16 @@ class PlayerUpdateService(
             .rejectOnBrokenAgeLimit(player)
             .add(player)
             .also { playerRosters.save(it) }
+        ScoreboardEntry.new(tournamentId, player.userId)
+            .also { scoreboardEntries.save(it) }
         return player
     }
 
     override fun updateScore(tournamentId: TournamentId, userId: UserId, score: Score) {
-        playerRosters.get(tournamentId)
-            .updateScore(userId, score)
-            .also { playerRosters.save(it) }
+        scoreboardEntries.get(tournamentId, userId)
+            .update(score)
+            .also { scoreboardEntries.save(it) }
     }
-
-    private fun PlayerRoster.updateScore(userId: UserId, score: Score) =
-        (this[userId] ?: throw DomainExceptions.UserNotFound(userId))
-        .update(score)
-        .let { update(it) }
-
-    private fun Player.update(score: Score) = copy(score = score)
 
     private fun Users.get(userId: UserId) = find(userId)
         ?: throw DomainExceptions.UserNotFound(userId)
@@ -64,6 +59,9 @@ class PlayerUpdateService(
     private fun PlayerRosters.get(tournamentId: TournamentId) = find(tournamentId)
         ?: tournaments.find(tournamentId)?.toPlayerRoster()
         ?: throw DomainExceptions.TournamentNotFound(tournamentId)
+
+    private fun ScoreboardEntries.get(tournamentId: TournamentId, userId: UserId) =
+        find(tournamentId, userId) ?: ScoreboardEntry.new(tournamentId, userId)
 
     private fun User.toPlayerIn(playerRoster: PlayerRoster, addedOn: () -> LocalDate) = PlayerOverview(
         userId = id,
@@ -89,7 +87,7 @@ class PlayerUpdateService(
         }
     }
 
-    private fun PlayerRoster.add(player: PlayerOverview) = add(Player(player.userId, player.nickname, player.score))
+    private fun PlayerRoster.add(player: PlayerOverview) = add(Player(player.userId, player.nickname))
 
     private fun sendAlert(content: String) = alerting.send(Notification.of(priority = HIGH, content))
 

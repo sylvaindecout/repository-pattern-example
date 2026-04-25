@@ -58,7 +58,7 @@ object TestData {
     }
 
     object Players {
-        fun User.toPlayer() = Player(id, preferredNickname, score = 0.points)
+        fun User.toPlayer() = Player(id, preferredNickname)
 
         val giorno get() = Users.giorno.toPlayer()
         val jotaro get() = Users.jotaro.toPlayer()
