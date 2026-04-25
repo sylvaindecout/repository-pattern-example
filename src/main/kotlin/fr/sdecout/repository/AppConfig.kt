@@ -38,6 +38,9 @@ class AppConfig {
     fun scoreboardEntries(dsl: DSLContext): ScoreboardEntries = DbScoreboardEntries(dsl)
 
     @Bean
+    fun tournamentSearchResultItems(dsl: DSLContext): TournamentSearchResultItems = DbTournamentSearchResultItems(dsl)
+
+    @Bean
     fun alerting(): Alerting = HttpAlerting()
 
     /* Services */
@@ -49,12 +52,11 @@ class AppConfig {
     fun userUpdateService(users: Users): UserUpdateService = UserUpdateService(users)
 
     @Bean
-    fun tournamentAccessService(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters): TournamentAccessService =
-        TournamentAccessService(users, tournaments, playerRosters)
+    fun tournamentAccessService(tournaments: Tournaments, tournamentSearchResultItems: TournamentSearchResultItems): TournamentAccessService =
+        TournamentAccessService(tournaments, tournamentSearchResultItems)
 
     @Bean
-    fun tournamentUpdateService(tournaments: Tournaments): TournamentUpdateService =
-        TournamentUpdateService(tournaments)
+    fun tournamentUpdateService(tournaments: Tournaments): TournamentUpdateService = TournamentUpdateService(tournaments)
 
     @Bean
     fun playerAccessService(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters, scoreboardEntries: ScoreboardEntries): PlayerAccessService =
@@ -73,8 +75,8 @@ class AppConfig {
     fun upsertUser(users: Users): UpsertUser = userUpdateService(users)
 
     @Bean
-    fun findTournament(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters): FindTournament =
-        tournamentAccessService(users, tournaments, playerRosters)
+    fun findTournament(tournaments: Tournaments, tournamentSearchResultItems: TournamentSearchResultItems): FindTournament =
+        tournamentAccessService(tournaments, tournamentSearchResultItems)
 
     @Bean
     fun upsertTournament(tournaments: Tournaments): UpsertTournament = tournamentUpdateService(tournaments)
@@ -100,7 +102,7 @@ class AppConfig {
         playerUpdateService(users, tournaments, playerRosters, scoreboardEntries, alerting)
 
     @Bean
-    fun searchTournaments(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters): SearchTournaments =
-        tournamentAccessService(users, tournaments, playerRosters)
+    fun searchTournaments(tournaments: Tournaments, tournamentSearchResultItems: TournamentSearchResultItems): SearchTournaments =
+        tournamentAccessService(tournaments, tournamentSearchResultItems)
 
 }
