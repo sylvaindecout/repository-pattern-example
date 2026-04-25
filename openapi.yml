@@ -323,6 +323,7 @@ components:
         - nickname
         - age
         - city
+        - score
       properties:
         id:
           $ref: '#/components/schemas/UserId'
@@ -332,6 +333,8 @@ components:
           $ref: '#/components/schemas/Age'
         city:
           $ref: '#/components/schemas/City'
+        score:
+          $ref: '#/components/schemas/Score'
     UserId:
       type: string
       format: uuid
@@ -351,6 +354,10 @@ components:
     LocalDate:
       type: string
       format: date
+    Score:
+      type: integer
+      minimum: 0
+      examples: [ 0, 10, 0, 35 ]
     Age:
       type: integer
       minimum: 16

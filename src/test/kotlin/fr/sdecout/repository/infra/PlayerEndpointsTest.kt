@@ -43,7 +43,8 @@ class PlayerEndpointsTest {
                         "id": "019cc9df-0a49-7fe8-9265-fd00996bd267",
                         "nickname": "giorno",
                         "age": 12,
-                        "city": "naples"
+                        "city": "naples",
+                        "score": 42
                     }"""
                 )
             )
