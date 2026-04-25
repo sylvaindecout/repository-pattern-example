@@ -228,6 +228,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /tournaments/search:
+    post:
+      tags:
+        - selection
+      summary: Search tournaments
+      description: Perform tournament search
+      operationId: searchTournaments
+      requestBody:
+        $ref: '#/components/requestBodies/TournamentSearchRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TournamentSearchResult'
+                uniqueItems: true
+        '400':
+          description: Invalid parameters supplied
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /tournaments/{tournamentId}/players/{playerId}:
     get:
       tags:
@@ -441,6 +468,14 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Tournament'
+    TournamentSearchRequest:
+      description: Tournament search criteria
+      content:
+        application/json:
+          schema:
+            properties:
+              age:
+                $ref: '#/components/schemas/Age'
     UserUpdateRequest:
       description: User that needs to be created or updated
       content:
