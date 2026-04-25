@@ -13,16 +13,16 @@ import fr.sdecout.repository.domain.core.roster.Player
 import fr.sdecout.repository.domain.core.roster.PlayerRoster
 import fr.sdecout.repository.domain.core.roster.PlayerRoster.Companion.toPlayerRoster
 import fr.sdecout.repository.domain.core.scoreboard.Score.Companion.points
+import fr.sdecout.repository.domain.core.scoreboard.ScoreboardEntry
 import fr.sdecout.repository.domain.core.tournament.RosterSize.Companion.players
 import fr.sdecout.repository.domain.core.tournament.TournamentId
 import fr.sdecout.repository.domain.core.user.UserId
-import fr.sdecout.repository.domain.spi.Alerting
-import fr.sdecout.repository.domain.spi.InMemoryPlayerRosters
-import fr.sdecout.repository.domain.spi.InMemoryTournaments
-import fr.sdecout.repository.domain.spi.InMemoryUsers
+import fr.sdecout.repository.domain.spi.*
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import io.mockk.verify
@@ -33,24 +33,30 @@ class PlayerUpdateServiceTest {
     val users = InMemoryUsers()
     val tournaments = InMemoryTournaments()
     val playerRosters = InMemoryPlayerRosters()
+    val scoreboardEntries = InMemoryScoreboardEntries()
     val alerting = mockk<Alerting>(relaxed = true)
 
-    val service = PlayerUpdateService(users, tournaments, playerRosters, alerting)
+    val service = PlayerUpdateService(users, tournaments, playerRosters, scoreboardEntries, alerting)
 
     @AfterEach
     fun afterEach() {
         users.clear()
         tournaments.clear()
         playerRosters.clear()
+        scoreboardEntries.clear()
     }
 
     @Test
     fun `should reset player roster`() {
         playerRosters.save(tournament1.toPlayerRoster(Players.jolyne, Players.giorno, Players.joseph))
+        scoreboardEntries.save(ScoreboardEntry.new(tournament1.id, jolyne.id))
+        scoreboardEntries.save(ScoreboardEntry.new(tournament1.id, giorno.id).update(12.points))
+        scoreboardEntries.save(ScoreboardEntry.new(tournament1.id, joseph.id).update(12.points))
 
         service.resetPlayerRoster(tournament1.id)
 
         playerRosters.find(tournament1.id) shouldBe null
+        scoreboardEntries.findAll(tournament1.id) should beEmpty()
     }
 
     @Test
@@ -117,6 +123,7 @@ class PlayerUpdateServiceTest {
         service.addPlayer(tournament2.id, giorno.id, addedOn = { today })
 
         playerRosters.find(tournament2.id) shouldBeIgnoringPendingPlayers tournament2.toPlayerRoster(Players.giorno)
+        scoreboardEntries.find(tournament2.id, giorno.id) shouldBe ScoreboardEntry.new(tournament2.id, giorno.id)
     }
 
     @Test
@@ -128,6 +135,7 @@ class PlayerUpdateServiceTest {
         service.addPlayer(tournament2.id, giorno.id, addedOn = { today })
 
         playerRosters.find(tournament2.id) shouldBeIgnoringPendingPlayers tournament2.toPlayerRoster(Players.jolyne, Players.giorno)
+        scoreboardEntries.find(tournament2.id, giorno.id) shouldBe ScoreboardEntry.new(tournament2.id, giorno.id)
     }
 
     @Test
@@ -135,13 +143,15 @@ class PlayerUpdateServiceTest {
         users.save(jolyne)
         users.save(joseph)
         tournaments.save(tournament1)
-        val anotherJoseph = Player(jolyne.id, Players.joseph.nickname, score = 0.points)
+        val anotherJoseph = Player(jolyne.id, Players.joseph.nickname)
         playerRosters.save(tournament1.toPlayerRoster(anotherJoseph))
-        val joseph2 = Player(joseph.id, Players.joseph.nickname + "-1", score = 0.points)
+        scoreboardEntries.save(ScoreboardEntry.new(tournament1.id, joseph.id).update(12.points))
+        val joseph2 = Player(joseph.id, Players.joseph.nickname + "-1")
 
         service.addPlayer(tournament1.id, joseph.id, addedOn = { today })
 
         playerRosters.find(tournament1.id) shouldBeIgnoringPendingPlayers tournament1.toPlayerRoster(anotherJoseph, joseph2)
+        scoreboardEntries.find(tournament1.id, joseph2.userId) shouldBe ScoreboardEntry.new(tournament1.id, joseph2.userId)
     }
 
     @Test
@@ -149,24 +159,30 @@ class PlayerUpdateServiceTest {
         users.save(giorno)
         tournaments.save(tournament2)
         playerRosters.save(tournament2.toPlayerRoster(Players.jolyne))
+        scoreboardEntries.save(ScoreboardEntry.new(tournament2.id, giorno.id).update(12.points))
 
         service.addPlayer(tournament2.id, giorno.id, addedOn = { today })
 
         playerRosters.find(tournament2.id) shouldBeIgnoringPendingPlayers tournament2.toPlayerRoster(Players.jolyne, Players.giorno)
+        scoreboardEntries.find(tournament2.id, giorno.id) shouldBe ScoreboardEntry.new(tournament2.id, giorno.id)
     }
 
     @Test
     fun `should update score`() {
-        users.save(jolyne)
-        users.save(giorno)
-        tournaments.save(tournament2)
-        playerRosters.save(tournament2.toPlayerRoster(Players.jolyne, Players.giorno.copy(score = 12.points)))
+        scoreboardEntries.save(ScoreboardEntry.new(tournament1.id, giorno.id).update(12.points))
 
-        service.updateScore(tournament2.id, giorno.id, score = 54.points)
+        service.updateScore(tournament1.id, giorno.id, 54.points)
 
-        playerRosters.find(tournament2.id) shouldBeIgnoringPendingPlayers tournament2.toPlayerRoster(Players.jolyne, Players.giorno.copy(score = 54.points))
+        scoreboardEntries.find(tournament1.id, giorno.id) shouldBe ScoreboardEntry.new(tournament1.id, giorno.id).update(54.points)
+    }
+
+    @Test
+    fun `should update missing score`() {
+        service.updateScore(tournament1.id, giorno.id, 54.points)
+
+        scoreboardEntries.find(tournament1.id, giorno.id) shouldBe ScoreboardEntry.new(tournament1.id, giorno.id).update(54.points)
     }
 
     private infix fun PlayerRoster?.shouldBeIgnoringPendingPlayers(expected: PlayerRoster) = shouldNotBeNull()
-        .shouldBeEqualToIgnoringFields(expected, PlayerRoster::pendingPlayers, PlayerRoster::pendingScoreUpdates)
+        .shouldBeEqualToIgnoringFields(expected, PlayerRoster::pendingPlayers)
 }

@@ -18,5 +18,5 @@ data class PlayerOverview(
         fun Player.with(age: Age, city: City, score: Score) = PlayerOverview(userId, nickname, age, city, score)
     }
 
-    val player: Player get() = Player(userId, nickname, score)
+    val player: Player get() = Player(userId, nickname)
 }

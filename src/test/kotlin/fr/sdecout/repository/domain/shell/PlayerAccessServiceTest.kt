@@ -9,8 +9,10 @@ import fr.sdecout.repository.domain.TestData.Users.joseph
 import fr.sdecout.repository.domain.TestData.today
 import fr.sdecout.repository.domain.core.roster.PlayerRoster.Companion.toPlayerRoster
 import fr.sdecout.repository.domain.core.scoreboard.Score.Companion.points
+import fr.sdecout.repository.domain.core.scoreboard.ScoreboardEntry
 import fr.sdecout.repository.domain.core.tournament.TournamentId
 import fr.sdecout.repository.domain.spi.InMemoryPlayerRosters
+import fr.sdecout.repository.domain.spi.InMemoryScoreboardEntries
 import fr.sdecout.repository.domain.spi.InMemoryTournaments
 import fr.sdecout.repository.domain.spi.InMemoryUsers
 import io.kotest.assertions.throwables.shouldThrow
@@ -23,14 +25,16 @@ class PlayerAccessServiceTest {
     val users = InMemoryUsers()
     val tournaments = InMemoryTournaments()
     val playerRosters = InMemoryPlayerRosters()
+    val scoreboardEntries = InMemoryScoreboardEntries()
 
-    val service = PlayerAccessService(users, tournaments, playerRosters)
+    val service = PlayerAccessService(users, tournaments, playerRosters, scoreboardEntries)
 
     @AfterEach
     fun afterEach() {
         users.clear()
         tournaments.clear()
         playerRosters.clear()
+        scoreboardEntries.clear()
     }
 
     @BeforeEach
@@ -52,13 +56,16 @@ class PlayerAccessServiceTest {
     @Test
     fun `should list players`() {
         playerRosters.save(tournament1.toPlayerRoster(Players.jolyne, Players.giorno, Players.joseph))
+        scoreboardEntries.save(ScoreboardEntry.new(tournament1.id, jolyne.id))
+        scoreboardEntries.save(ScoreboardEntry.new(tournament1.id, giorno.id).update(12.points))
+        scoreboardEntries.save(ScoreboardEntry.new(tournament1.id, joseph.id).update(12.points))
 
         val result = service.listPlayers(tournament1.id, requestedOn = { today })
 
         result shouldBe listOf(
-            PlayerOverviews.giorno,
-            PlayerOverviews.jolyne,
-            PlayerOverviews.joseph,
+            PlayerOverviews.giorno.copy(score = 12.points),
+            PlayerOverviews.joseph.copy(score = 12.points),
+            PlayerOverviews.jolyne.copy(score = 0.points),
         )
     }
 
@@ -90,11 +97,11 @@ class PlayerAccessServiceTest {
 
     @Test
     fun `should find player with score`() {
-        playerRosters.save(tournament1.toPlayerRoster(Players.jolyne, Players.giorno.copy(score = 12.points), Players.joseph))
+        playerRosters.save(tournament1.toPlayerRoster(Players.jolyne, Players.giorno, Players.joseph))
+        scoreboardEntries.save(ScoreboardEntry.new(tournament1.id, giorno.id).update(12.points))
 
         val result = service.findPlayer(tournament1.id, giorno.id, requestedOn = { today })
 
         result shouldBe PlayerOverviews.giorno.copy(score = 12.points)
     }
-
 }
