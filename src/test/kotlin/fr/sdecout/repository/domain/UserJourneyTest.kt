@@ -27,14 +27,15 @@ class UserJourneyTest {
     val tournaments = InMemoryTournaments()
     val playerRosters = InMemoryPlayerRosters()
     val scoreboardEntries = InMemoryScoreboardEntries()
+    val tournamentSearchResultItems = CompositeTournamentSearchResultItems(users, tournaments, playerRosters)
     val alerting = mockk<Alerting>(relaxed = true)
 
     // driving ports
     val upsertUser: UpsertUser = UserUpdateService(users)
     val findUser: FindUser = UserAccessService(users)
     val upsertTournament: UpsertTournament = TournamentUpdateService(tournaments)
-    val findTournament: FindTournament = TournamentAccessService(users, tournaments, playerRosters)
-    val searchTournaments: SearchTournaments = TournamentAccessService(users, tournaments, playerRosters)
+    val findTournament: FindTournament = TournamentAccessService(tournaments, tournamentSearchResultItems)
+    val searchTournaments: SearchTournaments = TournamentAccessService(tournaments, tournamentSearchResultItems)
     val addPlayer: AddPlayer = PlayerUpdateService(users, tournaments, playerRosters, scoreboardEntries, alerting)
     val updateScore: UpdateScore = PlayerUpdateService(users, tournaments, playerRosters, scoreboardEntries, alerting)
     val findPlayer: FindPlayer = PlayerAccessService(users, tournaments, playerRosters, scoreboardEntries)

@@ -1,4 +1,4 @@
-package fr.sdecout.repository.domain.shell
+package fr.sdecout.repository.domain.spi
 
 import fr.sdecout.repository.domain.TestData.PlayerOverviews
 import fr.sdecout.repository.domain.TestData.Tournaments.tournament1
@@ -15,25 +15,22 @@ import fr.sdecout.repository.domain.core.search.TournamentSearchCriteria.Compani
 import fr.sdecout.repository.domain.core.search.TournamentSearchCriteria.Companion.where
 import fr.sdecout.repository.domain.core.search.TournamentSearchCriterion.Companion.accessibleForAge
 import fr.sdecout.repository.domain.core.search.TournamentSearchCriterion.Companion.openSlotsOnly
-import fr.sdecout.repository.domain.core.search.TournamentSearchResult
 import fr.sdecout.repository.domain.core.search.TournamentSearchResultItem
 import fr.sdecout.repository.domain.core.tournament.RosterSize.Companion.players
 import fr.sdecout.repository.domain.core.tournament.Tournament
 import fr.sdecout.repository.domain.core.user.Age.Companion.average
 import fr.sdecout.repository.domain.core.user.Age.Companion.yearsOld
-import fr.sdecout.repository.domain.spi.InMemoryPlayerRosters
-import fr.sdecout.repository.domain.spi.InMemoryTournaments
-import fr.sdecout.repository.domain.spi.InMemoryUsers
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class TournamentAccessServiceTest {
+class CompositeTournamentSearchResultItemsTest {
     val users = InMemoryUsers()
     val tournaments = InMemoryTournaments()
     val playerRosters = InMemoryPlayerRosters()
 
-    val tournamentSearchResultItems = TournamentAccessService(users, tournaments, playerRosters)
+    val tournamentSearchResultItems = CompositeTournamentSearchResultItems(users, tournaments, playerRosters)
 
     val nsfwTournament = tournament1.copy(minimumAge = 18.yearsOld)
     val fullTournament = tournament2.copy(minimumAge = null, maxPlayerRosterSize = 2.players)
@@ -54,8 +51,8 @@ class TournamentAccessServiceTest {
 
     @Test
     fun `should search tournaments with no filter`() {
-        val result = tournamentSearchResultItems.searchTournaments(all(), requestedOn = { today })
-        result shouldBe TournamentSearchResult.of(
+        val result = tournamentSearchResultItems.findAll(all(), requestedOn = { today })
+        result shouldContainExactly listOf(
             TournamentSearchResultItem(
                 id = nsfwTournament.id,
                 name = nsfwTournament.name,
@@ -77,8 +74,8 @@ class TournamentAccessServiceTest {
 
     @Test
     fun `should exclude tournaments with age limit that is not met`() {
-        val result = tournamentSearchResultItems.searchTournaments(where(accessibleForAge(16.yearsOld)), requestedOn = { today })
-        result shouldBe TournamentSearchResult.of(
+        val result = tournamentSearchResultItems.findAll(where(accessibleForAge(16.yearsOld)), requestedOn = { today })
+        result shouldContainExactly listOf(
             TournamentSearchResultItem(
                 id = fullTournament.id,
                 name = fullTournament.name,
@@ -92,8 +89,8 @@ class TournamentAccessServiceTest {
 
     @Test
     fun `should exclude tournaments with no open slots`() {
-        val result = tournamentSearchResultItems.searchTournaments(where(openSlotsOnly()), requestedOn = { today })
-        result shouldBe TournamentSearchResult.of((
+        val result = tournamentSearchResultItems.findAll(where(openSlotsOnly()), requestedOn = { today })
+        result shouldContainExactly listOf(
             TournamentSearchResultItem(
                 id = nsfwTournament.id,
                 name = nsfwTournament.name,
@@ -101,14 +98,14 @@ class TournamentAccessServiceTest {
                 playerRostersSize = playersInNsfwTournament.size.players,
                 minimumAge = nsfwTournament.minimumAge,
                 averageAge = playersInNsfwTournament.averageAge(),
-            )
-        ))
+            ),
+        )
     }
 
     @Test
     fun `should exclude tournaments with several filters`() {
-        val result = tournamentSearchResultItems.searchTournaments(where(accessibleForAge(16.yearsOld)) and openSlotsOnly(), requestedOn = { today })
-        result shouldBe TournamentSearchResult.of()
+        val result = tournamentSearchResultItems.findAll(where(accessibleForAge(16.yearsOld)) and openSlotsOnly(), requestedOn = { today })
+        result shouldBe emptyList()
     }
 
     private fun Tournament.toPlayerRoster(players: List<PlayerOverview>) =
