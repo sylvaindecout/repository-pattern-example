@@ -2,24 +2,37 @@ package fr.sdecout.repository.infra.driven.jdbc
 
 import fr.sdecout.repository.domain.core.roster.Player
 import fr.sdecout.repository.domain.core.roster.PlayerRoster
+import fr.sdecout.repository.domain.core.scoreboard.Score
+import fr.sdecout.repository.domain.core.scoreboard.Score.Companion.points
 import fr.sdecout.repository.domain.core.tournament.RosterSize
 import fr.sdecout.repository.domain.core.tournament.TournamentId
 import fr.sdecout.repository.domain.core.user.Age
+import fr.sdecout.repository.domain.core.user.Nickname
+import fr.sdecout.repository.domain.core.user.UserId
 import fr.sdecout.repository.domain.spi.PlayerRosters
 import fr.sdecout.repository.infrastructure.driven.jdbc.jooq.tables.records.RosterEntryRecord
+import fr.sdecout.repository.infrastructure.driven.jdbc.jooq.tables.records.ScoreboardEntryRecord
 import fr.sdecout.repository.infrastructure.driven.jdbc.jooq.tables.references.ROSTER_ENTRY
+import fr.sdecout.repository.infrastructure.driven.jdbc.jooq.tables.references.SCOREBOARD_ENTRY
 import fr.sdecout.repository.infrastructure.driven.jdbc.jooq.tables.references.TOURNAMENT
 import org.jooq.DSLContext
 import org.jooq.Field
+import org.jooq.Record3
 import org.jooq.Record4
 import org.jooq.impl.DSL.multiset
-import org.jooq.impl.DSL.selectFrom
+import org.jooq.impl.DSL.select
 
 class DbPlayerRosters(private val dsl: DSLContext) : PlayerRosters {
     private typealias Row = Record4<TournamentId?, RosterSize?, Age?, List<Player>?>
+    private typealias PlayerRow = Record3<UserId?, Nickname?, Score?>
 
     private val players: Field<List<Player>> = multiset(
-        selectFrom(ROSTER_ENTRY)
+        select(ROSTER_ENTRY.PLAYER, ROSTER_ENTRY.NICKNAME, SCOREBOARD_ENTRY.SCORE)
+            .from(ROSTER_ENTRY)
+            .leftJoin(SCOREBOARD_ENTRY).on(
+                SCOREBOARD_ENTRY.PLAYER.equal(ROSTER_ENTRY.PLAYER)
+                    .and(SCOREBOARD_ENTRY.TOURNAMENT.equal(ROSTER_ENTRY.TOURNAMENT))
+            )
             .where(ROSTER_ENTRY.TOURNAMENT.eq(TOURNAMENT.ID))
     ).`as`("players").convertFrom { it.toDomain() }
 
@@ -35,8 +48,11 @@ class DbPlayerRosters(private val dsl: DSLContext) : PlayerRosters {
         .fetchOne { it.toDomain() }
 
     override fun save(playerRoster: PlayerRoster) {
-        val commands = playerRoster.pendingPlayers
+        val rosterUpdates = playerRoster.pendingPlayers
             .map { player -> prepareUpsert(player, playerRoster.tournamentId) }
+        val scoreUpdates = playerRoster.pendingScoreUpdates
+            .map { player -> prepareUpsertForScore(player, playerRoster.tournamentId) }
+        val commands = rosterUpdates + scoreUpdates
         dsl.batch(commands).execute()
     }
 
@@ -60,11 +76,26 @@ class DbPlayerRosters(private val dsl: DSLContext) : PlayerRosters {
         .onDuplicateKeyUpdate()
         .set(this)
 
-    private fun List<RosterEntryRecord>.toDomain() = map { it.toDomain() }
+    private fun prepareUpsertForScore(player: Player, tournamentId: TournamentId) =
+        scoreRecordFrom(player, tournamentId).prepareUpsert()
 
-    private fun RosterEntryRecord.toDomain() = Player(
-        userId = player,
-        nickname = nickname,
+    private fun scoreRecordFrom(player: Player, tournamentId: TournamentId) = SCOREBOARD_ENTRY.newRecord()
+        .with(SCOREBOARD_ENTRY.TOURNAMENT, tournamentId)
+        .with(SCOREBOARD_ENTRY.PLAYER, player.userId)
+        .with(SCOREBOARD_ENTRY.SCORE, player.score)
+
+    private fun ScoreboardEntryRecord.prepareUpsert() = dsl
+        .insertInto(SCOREBOARD_ENTRY)
+        .set(this)
+        .onDuplicateKeyUpdate()
+        .set(this)
+
+    private fun List<PlayerRow>.toDomain() = map { it.toDomain() }
+
+    private fun PlayerRow.toDomain() = Player(
+        userId = get(ROSTER_ENTRY.PLAYER)!!,
+        nickname = get(ROSTER_ENTRY.NICKNAME)!!,
+        score = get(SCOREBOARD_ENTRY.SCORE) ?: 0.points,
     )
 
     private fun Row.toDomain() = PlayerRoster.from(

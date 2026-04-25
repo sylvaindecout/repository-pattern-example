@@ -1,5 +1,6 @@
 package fr.sdecout.repository.domain.shell
 
+import fr.sdecout.repository.domain.api.FindPlayer
 import fr.sdecout.repository.domain.api.ListPlayers
 import fr.sdecout.repository.domain.core.player.PlayerOverview
 import fr.sdecout.repository.domain.core.player.PlayerOverview.Companion.with
@@ -7,6 +8,7 @@ import fr.sdecout.repository.domain.core.roster.Player
 import fr.sdecout.repository.domain.core.roster.PlayerRoster.Companion.toPlayerRoster
 import fr.sdecout.repository.domain.core.tournament.TournamentId
 import fr.sdecout.repository.domain.core.user.User
+import fr.sdecout.repository.domain.core.user.UserId
 import fr.sdecout.repository.domain.spi.PlayerRosters
 import fr.sdecout.repository.domain.spi.Tournaments
 import fr.sdecout.repository.domain.spi.Users
@@ -16,12 +18,15 @@ class PlayerAccessService(
     private val users: Users,
     private val tournaments: Tournaments,
     private val playerRosters: PlayerRosters,
-) : ListPlayers {
+) : ListPlayers, FindPlayer {
 
     override fun listPlayers(tournamentId: TournamentId, requestedOn: () -> LocalDate): List<PlayerOverview> =
         playerRosters.get(tournamentId)
             .players.withUserInfo(requestedOn)
             .sortedBy { it.nickname.value }
+
+    override fun findPlayer(tournamentId: TournamentId, userId: UserId, requestedOn: () -> LocalDate): PlayerOverview? =
+        playerRosters.get(tournamentId)[userId]?.withUserInfo(requestedOn)
 
     private fun PlayerRosters.get(tournamentId: TournamentId) = find(tournamentId)
         ?: tournaments.find(tournamentId)?.toPlayerRoster()
@@ -36,6 +41,11 @@ class PlayerAccessService(
         }
     }
 
+    private fun Player.withUserInfo(requestedOn: () -> LocalDate): PlayerOverview {
+        val user = users.find(userId) ?: throw DomainExceptions.UserNotFound(userId)
+        return withUserInfo(user, requestedOn())
+    }
+
     private fun Player.withUserInfo(user: User, now: LocalDate) =
-        with(age = user.age { now }, city = user.city)
+        with(age = user.age { now }, city = user.city, score = score)
 }

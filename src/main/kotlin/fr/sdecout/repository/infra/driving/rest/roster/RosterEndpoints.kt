@@ -5,7 +5,8 @@ import fr.sdecout.repository.domain.api.ListPlayers
 import fr.sdecout.repository.domain.api.ResetPlayerRoster
 import fr.sdecout.repository.domain.core.tournament.TournamentId
 import fr.sdecout.repository.domain.shell.DomainExceptions
-import fr.sdecout.repository.infra.driving.rest.roster.PlayerDto.Companion.toDto
+import fr.sdecout.repository.infra.driving.rest.player.PlayerDto
+import fr.sdecout.repository.infra.driving.rest.player.PlayerDto.Companion.toDto
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus.*
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE

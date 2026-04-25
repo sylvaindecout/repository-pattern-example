@@ -12,6 +12,7 @@ import fr.sdecout.repository.domain.core.alerting.PriorityLevel.HIGH
 import fr.sdecout.repository.domain.core.roster.Player
 import fr.sdecout.repository.domain.core.roster.PlayerRoster
 import fr.sdecout.repository.domain.core.roster.PlayerRoster.Companion.toPlayerRoster
+import fr.sdecout.repository.domain.core.scoreboard.Score.Companion.points
 import fr.sdecout.repository.domain.core.tournament.RosterSize.Companion.players
 import fr.sdecout.repository.domain.core.tournament.TournamentId
 import fr.sdecout.repository.domain.core.user.UserId
@@ -134,9 +135,9 @@ class PlayerUpdateServiceTest {
         users.save(jolyne)
         users.save(joseph)
         tournaments.save(tournament1)
-        val anotherJoseph = Player(jolyne.id, Players.joseph.nickname)
+        val anotherJoseph = Player(jolyne.id, Players.joseph.nickname, score = 0.points)
         playerRosters.save(tournament1.toPlayerRoster(anotherJoseph))
-        val joseph2 = Player(joseph.id, Players.joseph.nickname + "-1")
+        val joseph2 = Player(joseph.id, Players.joseph.nickname + "-1", score = 0.points)
 
         service.addPlayer(tournament1.id, joseph.id, addedOn = { today })
 
@@ -154,6 +155,18 @@ class PlayerUpdateServiceTest {
         playerRosters.find(tournament2.id) shouldBeIgnoringPendingPlayers tournament2.toPlayerRoster(Players.jolyne, Players.giorno)
     }
 
+    @Test
+    fun `should update score`() {
+        users.save(jolyne)
+        users.save(giorno)
+        tournaments.save(tournament2)
+        playerRosters.save(tournament2.toPlayerRoster(Players.jolyne, Players.giorno.copy(score = 12.points)))
+
+        service.updateScore(tournament2.id, giorno.id, score = 54.points)
+
+        playerRosters.find(tournament2.id) shouldBeIgnoringPendingPlayers tournament2.toPlayerRoster(Players.jolyne, Players.giorno.copy(score = 54.points))
+    }
+
     private infix fun PlayerRoster?.shouldBeIgnoringPendingPlayers(expected: PlayerRoster) = shouldNotBeNull()
-        .shouldBeEqualToIgnoringFields(expected, PlayerRoster::pendingPlayers)
+        .shouldBeEqualToIgnoringFields(expected, PlayerRoster::pendingPlayers, PlayerRoster::pendingScoreUpdates)
 }

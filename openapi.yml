@@ -228,6 +228,80 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /tournaments/{tournamentId}/players/{playerId}:
+    get:
+      tags:
+        - player
+      summary: Find a player
+      description: Find an existing player of the tournament by ID
+      operationId: findPlayer
+      parameters:
+        - name: tournamentId
+          in: path
+          description: ID of tournament
+          required: true
+          schema:
+            $ref: '#/components/schemas/TournamentId'
+        - name: playerId
+          in: path
+          description: ID of the player
+          required: true
+          schema:
+            $ref: '#/components/schemas/UserId'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Player'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Player not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /tournaments/{tournamentId}/players/{playerId}/score:
+    put:
+      tags:
+        - player
+      summary: Update score
+      description: Update the score of a player in the tournament
+      operationId: updateScore
+      parameters:
+        - name: tournamentId
+          in: path
+          description: ID of tournament
+          required: true
+          schema:
+            $ref: '#/components/schemas/TournamentId'
+        - name: playerId
+          in: path
+          description: ID of the player
+          required: true
+          schema:
+            $ref: '#/components/schemas/UserId'
+      requestBody:
+        $ref: '#/components/requestBodies/ScoreUpdateRequest'
+      responses:
+        '204':
+          description: Successful operation
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Tournament not found
+        '409':
+          description: Conflict
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   schemas:
     TournamentSearchResult:
@@ -286,6 +360,7 @@ components:
         - nickname
         - age
         - city
+        - score
       properties:
         id:
           $ref: '#/components/schemas/UserId'
@@ -295,6 +370,8 @@ components:
           $ref: '#/components/schemas/Age'
         city:
           $ref: '#/components/schemas/City'
+        score:
+          $ref: '#/components/schemas/Score'
     UserId:
       type: string
       format: uuid
@@ -314,6 +391,10 @@ components:
     LocalDate:
       type: string
       format: date
+    Score:
+      type: integer
+      minimum: 0
+      examples: [ 0, 10, 0, 35 ]
     Age:
       type: integer
       minimum: 16
@@ -343,6 +424,16 @@ components:
             properties:
               userId:
                 $ref: '#/components/schemas/UserId'
+      required: true
+    ScoreUpdateRequest:
+      content:
+        application/json:
+          schema:
+            required:
+              - score
+            properties:
+              score:
+                $ref: '#/components/schemas/Score'
       required: true
     TournamentUpdateRequest:
       description: Tournament that needs to be created or updated

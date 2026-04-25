@@ -6,6 +6,7 @@ import fr.sdecout.repository.domain.TestData.Cities.orlando
 import fr.sdecout.repository.domain.TestData.Cities.tokyo
 import fr.sdecout.repository.domain.core.player.PlayerOverview
 import fr.sdecout.repository.domain.core.roster.Player
+import fr.sdecout.repository.domain.core.scoreboard.Score.Companion.points
 import fr.sdecout.repository.domain.core.tournament.RosterSize
 import fr.sdecout.repository.domain.core.tournament.RosterSize.Companion.players
 import fr.sdecout.repository.domain.core.tournament.Tournament
@@ -57,7 +58,7 @@ object TestData {
     }
 
     object Players {
-        fun User.toPlayer() = Player(id, preferredNickname)
+        fun User.toPlayer() = Player(id, preferredNickname, score = 0.points)
 
         val giorno get() = Users.giorno.toPlayer()
         val jotaro get() = Users.jotaro.toPlayer()
@@ -66,7 +67,7 @@ object TestData {
     }
 
     object PlayerOverviews {
-        fun User.toPlayerOverview() = PlayerOverview(id, preferredNickname, age { today }, city)
+        fun User.toPlayerOverview() = PlayerOverview(id, preferredNickname, age { today }, city, score = 0.points)
 
         val giorno get() = Users.giorno.toPlayerOverview()
         val jotaro get() = Users.jotaro.toPlayerOverview()
