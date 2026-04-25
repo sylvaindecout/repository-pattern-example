@@ -8,6 +8,7 @@ import fr.sdecout.repository.domain.TestData.Users.jolyne
 import fr.sdecout.repository.domain.TestData.Users.joseph
 import fr.sdecout.repository.domain.TestData.today
 import fr.sdecout.repository.domain.core.roster.PlayerRoster.Companion.toPlayerRoster
+import fr.sdecout.repository.domain.core.scoreboard.Score.Companion.points
 import fr.sdecout.repository.domain.core.tournament.TournamentId
 import fr.sdecout.repository.domain.spi.InMemoryPlayerRosters
 import fr.sdecout.repository.domain.spi.InMemoryTournaments
@@ -79,12 +80,21 @@ class PlayerAccessServiceTest {
     }
 
     @Test
-    fun `should find player`() {
+    fun `should find player with missing score`() {
         playerRosters.save(tournament1.toPlayerRoster(Players.jolyne, Players.giorno, Players.joseph))
 
         val result = service.findPlayer(tournament1.id, giorno.id, requestedOn = { today })
 
-        result shouldBe PlayerOverviews.giorno
+        result shouldBe PlayerOverviews.giorno.copy(score = 0.points)
+    }
+
+    @Test
+    fun `should find player with score`() {
+        playerRosters.save(tournament1.toPlayerRoster(Players.jolyne, Players.giorno.copy(score = 12.points), Players.joseph))
+
+        val result = service.findPlayer(tournament1.id, giorno.id, requestedOn = { today })
+
+        result shouldBe PlayerOverviews.giorno.copy(score = 12.points)
     }
 
 }

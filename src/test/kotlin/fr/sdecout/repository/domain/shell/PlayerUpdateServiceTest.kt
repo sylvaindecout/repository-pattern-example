@@ -12,6 +12,7 @@ import fr.sdecout.repository.domain.core.alerting.PriorityLevel.HIGH
 import fr.sdecout.repository.domain.core.roster.Player
 import fr.sdecout.repository.domain.core.roster.PlayerRoster
 import fr.sdecout.repository.domain.core.roster.PlayerRoster.Companion.toPlayerRoster
+import fr.sdecout.repository.domain.core.scoreboard.Score.Companion.points
 import fr.sdecout.repository.domain.core.tournament.RosterSize.Companion.players
 import fr.sdecout.repository.domain.core.tournament.TournamentId
 import fr.sdecout.repository.domain.core.user.UserId
@@ -134,9 +135,9 @@ class PlayerUpdateServiceTest {
         users.save(jolyne)
         users.save(joseph)
         tournaments.save(tournament1)
-        val anotherJoseph = Player(jolyne.id, Players.joseph.nickname)
+        val anotherJoseph = Player(jolyne.id, Players.joseph.nickname, score = 0.points)
         playerRosters.save(tournament1.toPlayerRoster(anotherJoseph))
-        val joseph2 = Player(joseph.id, Players.joseph.nickname + "-1")
+        val joseph2 = Player(joseph.id, Players.joseph.nickname + "-1", score = 0.points)
 
         service.addPlayer(tournament1.id, joseph.id, addedOn = { today })
 

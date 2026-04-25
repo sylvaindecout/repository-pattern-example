@@ -9,6 +9,7 @@ import fr.sdecout.repository.domain.core.roster.Player
 import fr.sdecout.repository.domain.core.roster.PlayerRoster
 import fr.sdecout.repository.domain.core.roster.PlayerRoster.Companion.toPlayerRoster
 import fr.sdecout.repository.domain.core.roster.availableNicknameClosestTo
+import fr.sdecout.repository.domain.core.scoreboard.Score.Companion.points
 import fr.sdecout.repository.domain.core.tournament.TournamentId
 import fr.sdecout.repository.domain.core.user.User
 import fr.sdecout.repository.domain.core.user.UserId
@@ -54,6 +55,7 @@ class PlayerUpdateService(
         nickname = playerRoster.availableNicknameClosestTo(preferredNickname),
         age = age(addedOn),
         city = city,
+        score = 0.points,
     )
 
     private fun PlayerRoster.rejectIfAlreadyFull() = also {
@@ -72,7 +74,7 @@ class PlayerUpdateService(
         }
     }
 
-    private fun PlayerRoster.add(player: PlayerOverview) = add(Player(player.userId, player.nickname))
+    private fun PlayerRoster.add(player: PlayerOverview) = add(Player(player.userId, player.nickname, player.score))
 
     private fun sendAlert(content: String) = alerting.send(Notification.of(priority = HIGH, content))
 

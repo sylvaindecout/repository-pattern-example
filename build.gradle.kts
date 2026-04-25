@@ -96,7 +96,7 @@ jooq {
           ForcedType()
             .withUserType("fr.sdecout.repository.domain.core.user.UserId")
             .withConverter("fr.sdecout.repository.infra.driven.jdbc.converters.UserIdConverter")
-            .withIncludeExpression("PLAYER.ID|ROSTER_ENTRY.PLAYER")
+            .withIncludeExpression("PLAYER.ID|ROSTER_ENTRY.PLAYER|SCOREBOARD_ENTRY.PLAYER")
             .withNullability(NOT_NULL),
           ForcedType()
             .withUserType("fr.sdecout.repository.domain.core.user.Nickname")
@@ -111,7 +111,7 @@ jooq {
           ForcedType()
             .withUserType("fr.sdecout.repository.domain.core.tournament.TournamentId")
             .withConverter("fr.sdecout.repository.infra.driven.jdbc.converters.TournamentIdConverter")
-            .withIncludeExpression("TOURNAMENT.ID|ROSTER_ENTRY.TOURNAMENT")
+            .withIncludeExpression("TOURNAMENT.ID|ROSTER_ENTRY.TOURNAMENT|SCOREBOARD_ENTRY.TOURNAMENT")
             .withNullability(NOT_NULL),
           ForcedType()
             .withUserType("fr.sdecout.repository.domain.core.tournament.TournamentName")
@@ -127,6 +127,11 @@ jooq {
             .withUserType("fr.sdecout.repository.domain.core.user.Age")
             .withConverter("fr.sdecout.repository.infra.driven.jdbc.converters.AgeConverter")
             .withIncludeExpression("TOURNAMENT.MIN_AGE")
+            .withNullability(ALL),
+          ForcedType()
+            .withUserType("fr.sdecout.repository.domain.core.scoreboard.Score")
+            .withConverter("fr.sdecout.repository.infra.driven.jdbc.converters.ScoreConverter")
+            .withIncludeExpression("SCOREBOARD_ENTRY.SCORE")
             .withNullability(ALL),
         )
       }

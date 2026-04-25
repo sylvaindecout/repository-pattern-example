@@ -47,5 +47,5 @@ class PlayerAccessService(
     }
 
     private fun Player.withUserInfo(user: User, now: LocalDate) =
-        with(age = user.age { now }, city = user.city)
+        with(age = user.age { now }, city = user.city, score = score)
 }
