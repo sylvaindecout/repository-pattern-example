@@ -92,4 +92,8 @@ class AppConfig {
     fun resetPlayerRoster(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters, alerting: Alerting): ResetPlayerRoster =
         playerUpdateService(users, tournaments, playerRosters, alerting)
 
+    @Bean
+    fun findPlayer(users: Users, tournaments: Tournaments, playerRosters: PlayerRosters): FindPlayer =
+        playerAccessService(users, tournaments, playerRosters)
+
 }

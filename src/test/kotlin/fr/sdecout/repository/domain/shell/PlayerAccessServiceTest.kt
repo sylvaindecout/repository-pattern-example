@@ -14,6 +14,7 @@ import fr.sdecout.repository.domain.spi.InMemoryTournaments
 import fr.sdecout.repository.domain.spi.InMemoryUsers
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -23,6 +24,13 @@ class PlayerAccessServiceTest {
     val playerRosters = InMemoryPlayerRosters()
 
     val service = PlayerAccessService(users, tournaments, playerRosters)
+
+    @AfterEach
+    fun afterEach() {
+        users.clear()
+        tournaments.clear()
+        playerRosters.clear()
+    }
 
     @BeforeEach
     fun beforeEach() {
@@ -51,6 +59,32 @@ class PlayerAccessServiceTest {
             PlayerOverviews.jolyne,
             PlayerOverviews.joseph,
         )
+    }
+
+    @Test
+    fun `should fail to find player for an unknown tournament`() {
+        val unknownTournamentId = TournamentId.from("unknown-tournament")
+        shouldThrow<DomainExceptions.TournamentNotFound> {
+            service.findPlayer(unknownTournamentId, giorno.id, requestedOn = { today })
+        }.message shouldBe "No tournament found with id $unknownTournamentId"
+    }
+
+    @Test
+    fun `should not find player with unknown user ID`() {
+        playerRosters.save(tournament1.toPlayerRoster())
+
+        val result = service.findPlayer(tournament1.id, giorno.id, requestedOn = { today })
+
+        result shouldBe null
+    }
+
+    @Test
+    fun `should find player`() {
+        playerRosters.save(tournament1.toPlayerRoster(Players.jolyne, Players.giorno, Players.joseph))
+
+        val result = service.findPlayer(tournament1.id, giorno.id, requestedOn = { today })
+
+        result shouldBe PlayerOverviews.giorno
     }
 
 }

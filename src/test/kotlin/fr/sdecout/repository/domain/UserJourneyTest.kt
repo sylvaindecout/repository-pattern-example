@@ -29,6 +29,7 @@ class UserJourneyTest {
     val upsertTournament: UpsertTournament = TournamentUpdateService(tournaments)
     val findTournament: FindTournament = TournamentAccessService(tournaments)
     val addPlayer: AddPlayer = PlayerUpdateService(users, tournaments, playerRosters, alerting)
+    val findPlayer: FindPlayer = PlayerAccessService(users, tournaments, playerRosters)
     val listPlayers: ListPlayers = PlayerAccessService(users, tournaments, playerRosters)
     val resetPlayerRoster: ResetPlayerRoster = PlayerUpdateService(users, tournaments, playerRosters, alerting)
 
@@ -50,10 +51,12 @@ class UserJourneyTest {
 
         // complete 1st challenge
         addPlayer(selectedTournamentId, jotaro.id, addedOn = { today })
+        findPlayer(selectedTournamentId, player.userId, requestedOn = { today }) shouldBe player
 
         // complete session
         listPlayers(selectedTournamentId, requestedOn = { today }) shouldBe listOf(player)
         resetPlayerRoster(selectedTournamentId)
         listPlayers(selectedTournamentId, requestedOn = { today }) shouldBe emptyList()
+        findPlayer(selectedTournamentId, player.userId, requestedOn = { today }) shouldBe null
     }
 }
