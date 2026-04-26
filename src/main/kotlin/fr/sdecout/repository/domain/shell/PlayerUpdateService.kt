@@ -4,6 +4,8 @@ import fr.sdecout.repository.domain.api.AddPlayer
 import fr.sdecout.repository.domain.api.ResetPlayerRoster
 import fr.sdecout.repository.domain.core.roster.Player
 import fr.sdecout.repository.domain.core.roster.PlayerRosterEntry
+import fr.sdecout.repository.domain.core.roster.availableNicknameClosestTo
+import fr.sdecout.repository.domain.core.tournament.RosterSize.Companion.players
 import fr.sdecout.repository.domain.core.tournament.TournamentId
 import fr.sdecout.repository.domain.core.user.User
 import fr.sdecout.repository.domain.core.user.UserId
@@ -22,11 +24,23 @@ class PlayerUpdateService(
         playerRosterEntries.removeAll(tournamentId)
     }
 
+    /**
+     * Two features have been added:
+     * * Reject the player if the roster is already full
+     * * Generate a unique nickname in case the user's preferred nickname is already used
+     *
+     * Issue: The whole roster needs to be loaded.
+     *
+     * Issue: Concurrent updates may lead to broken rules.
+     */
     override fun addPlayer(tournamentId: TournamentId, userId: UserId, addedOn: () -> LocalDate): Player {
-        return users.get(userId)
+        val user = users.get(userId)
+        val entries = playerRosterEntries.findAll(tournamentId)
             .failOnDuplicatePlayer(tournamentId, userId)
-            .failOnUnknownTournament(tournamentId)
-            .toPlayerIn(tournamentId)
+        val tournament = tournaments.get(tournamentId)
+        if (entries.size.players >= tournament.maxPlayerRosterSize)
+            throw DomainExceptions.FullPlayerRoster(tournamentId)
+        return user.toPlayerIn(entries, tournamentId)
             .also { newEntry -> playerRosterEntries.save(newEntry) }
             .let { Player(it.userId, it.nickname) }
     }
@@ -34,21 +48,19 @@ class PlayerUpdateService(
     private fun Users.get(userId: UserId) = find(userId)
         ?: throw DomainExceptions.UserNotFound(userId)
 
-    private fun User.failOnUnknownTournament(tournamentId: TournamentId) = also {
-        tournaments.find(tournamentId)
-            ?: throw DomainExceptions.TournamentNotFound(tournamentId)
-    }
+    private fun Tournaments.get(tournamentId: TournamentId) = find(tournamentId)
+        ?: throw DomainExceptions.TournamentNotFound(tournamentId)
 
-    private fun User.failOnDuplicatePlayer(tournamentId: TournamentId, userId: UserId) = also {
-        if (playerRosterEntries.find(tournamentId, userId) != null)
+    private fun List<PlayerRosterEntry>.failOnDuplicatePlayer(tournamentId: TournamentId, userId: UserId) = also {
+        if (any { it.userId == userId })
             throw DomainExceptions.DuplicatePlayer(tournamentId, userId)
     }
 
-    private fun User.toPlayerIn(tournamentId: TournamentId) =
+    private fun User.toPlayerIn(playerRoster: List<PlayerRosterEntry>, tournamentId: TournamentId) =
         PlayerRosterEntry.from(
             tournamentId = tournamentId,
             userId = id,
-            nickname = preferredNickname,
+            nickname = playerRoster.availableNicknameClosestTo(preferredNickname),
         )
 
 }
